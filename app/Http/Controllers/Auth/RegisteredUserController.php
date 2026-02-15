@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Setting;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,16 +37,24 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $requiresActivation = Setting::get('registration_requires_activation', false);
+        $defaultPages = Setting::get('default_user_pages', []);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_active' => !$requiresActivation,
+            'allowed_pages' => $defaultPages,
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
+        if ($user->is_active) {
+            Auth::login($user);
+            return redirect(route('dashboard', absolute: false));
+        }
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('login')->with('status', 'Your account has been created, but requires manual activation by an administrator.');
     }
 }

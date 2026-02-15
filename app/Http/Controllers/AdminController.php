@@ -12,11 +12,23 @@ class AdminController extends Controller
     /**
      * Display the users management page.
      */
-    public function usersIndex()
+    public function usersIndex(Request $request)
     {
-        $users = User::all(); // Simple list for now. In real app, paginate.
+        $query = User::latest();
+
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
         return \Inertia\Inertia::render('Admin/Users/Index', [
-            'users' => $users
+            'users' => $query->get(),
+            'filters' => $request->only(['search']),
+            'total_users' => User::count(),
+            'active_users' => User::where('is_active', true)->count()
         ]);
     }
 
@@ -39,7 +51,29 @@ class AdminController extends Controller
      */
     public function settingsIndex()
     {
-        return \Inertia\Inertia::render('Admin/Settings/Index');
+        $settings = \App\Models\Setting::all()->mapWithKeys(function ($item) {
+            return [$item->key => \App\Models\Setting::get($item->key)];
+        });
+
+        return \Inertia\Inertia::render('Admin/Settings/Index', [
+            'settings' => $settings
+        ]);
+    }
+
+    /**
+     * Update system settings.
+     */
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'settings' => 'required|array',
+        ]);
+
+        foreach ($request->settings as $key => $value) {
+            \App\Models\Setting::set($key, $value);
+        }
+
+        return back()->with('success', 'Settings updated successfully.');
     }
 
     /**
@@ -121,5 +155,16 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+    /**
+     * Remove the specified user.
+     */
+    public function deleteUser(User $user)
+    {
+        // Don't allow deleting yourself or master users if needed
+        // For now, simple delete
+        $user->delete();
+
+        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 }

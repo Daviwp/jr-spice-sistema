@@ -238,10 +238,10 @@ watch(() => props.embedConfig, (newConfig) => {
                     <button
                         @click="goToSystemHome"
                         class="flex items-center px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-700 transition-all font-bold text-sm mr-2 group border border-transparent hover:border-slate-200"
-                        title="Voltar para Visão Geral"
+                        :title="$t('Voltar para Visão Geral')"
                     >
                         <LayoutDashboard class="w-5 h-5 mr-2 text-slate-400 group-hover:text-blue-600 transition-colors" />
-                        <span class="hidden md:inline">Visão Geral</span>
+                        <span class="hidden md:inline">{{ $t('Overview') }}</span>
                     </button>
 
                     <div class="h-8 w-px bg-slate-200 mx-2"></div>
@@ -291,13 +291,13 @@ watch(() => props.embedConfig, (newConfig) => {
 
                         <div class="max-w-7xl mx-auto w-full z-10 text-white px-12 pb-12">
                             <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-6 backdrop-blur-sm">
-                                Enterprise Analytics
+                                {{ $t('Enterprise Analytics') }}
                             </div>
                             <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-white">
-                                Olá, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">{{ user.name }}.</span>
+                                {{ $t('Welcome back, :name', { name: user.name }) }}
                             </h1>
                             <p class="text-slate-400 max-w-2xl text-lg font-light leading-relaxed">
-                                Visualize o desempenho global, exporte tabelas de preços e mantenha-se atualizado com os dados mais recentes do mercado.
+                                {{ $t('Visualize global performance, export price tables and stay up to date with the latest market data.') }}
                             </p>
                         </div>
                     </div>
@@ -332,17 +332,17 @@ watch(() => props.embedConfig, (newConfig) => {
                                     </div>
 
                                     <div class="space-y-2 mb-4">
-                                        <span class="text-[10px] font-bold uppercase text-slate-400 tracking-widest">Relatório 0{{ index + 1 }}</span>
+                                        <span class="text-[10px] font-bold uppercase text-slate-400 tracking-widest">{{ $t('Report') }} 0{{ index + 1 }}</span>
                                         <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-700 transition-colors">
                                             {{ page.displayName.replace(/_/g, ' ') }}
                                         </h3>
                                         <p class="text-xs text-slate-500 line-clamp-2">
-                                            Clique para visualizar os detalhes completos e análises deste relatório.
+                                            {{ $t('Click to view full details and analysis of this report.') }}
                                         </p>
                                     </div>
 
                                     <div class="mt-auto pt-4 w-full flex items-center justify-between border-t border-slate-50 group-hover:border-slate-100 transition-colors">
-                                        <span class="text-[10px] font-semibold text-blue-600 opacity-60 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Acessar Painel</span>
+                                        <span class="text-[10px] font-semibold text-blue-600 opacity-60 group-hover:opacity-100 transition-opacity uppercase tracking-wider">{{ $t('Access Panel') }}</span>
                                         <div class="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                                             <svg class="w-3 h-3 text-slate-400 group-hover:text-blue-600 transform group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -367,12 +367,12 @@ watch(() => props.embedConfig, (newConfig) => {
                                 <Loader2 class="w-8 h-8 text-blue-600 animate-pulse" />
                             </div>
                         </div>
-                        <h3 class="text-xl font-black text-slate-800 tracking-tight mb-2 uppercase italic">Processando Dados</h3>
+                        <h3 class="text-xl font-black text-slate-800 tracking-tight mb-2 uppercase italic">{{ $t('Processing Data') }}</h3>
                         <div class="flex items-center space-x-2">
                              <div class="h-1 w-1 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                              <div class="h-1 w-1 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                              <div class="h-1 w-1 bg-blue-600 rounded-full animate-bounce"></div>
-                             <span class="text-xs font-bold text-slate-400 uppercase tracking-[0.3em] ml-2">Sincronizando Analytics</span>
+                             <span class="text-xs font-bold text-slate-400 uppercase tracking-[0.3em] ml-2">{{ $t('Synchronizing Analytics') }}</span>
                         </div>
                     </div>
                 </div>

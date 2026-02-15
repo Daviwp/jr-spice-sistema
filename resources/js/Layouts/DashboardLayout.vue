@@ -60,7 +60,6 @@ const navItems = [];
                                         {{ $t('Settings') }}
                                     </DropdownLink>
                                 </div>
-                                <DropdownLink :href="route('profile.edit')" class="text-sm"> {{ $t('Profile') }} </DropdownLink>
                                 <DropdownLink :href="route('logout')" method="post" as="button" class="text-sm text-red-600 hover:bg-red-50"> {{ $t('Log Out') }} </DropdownLink>
                             </template>
                         </Dropdown>

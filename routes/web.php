@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PowerBiController;
 use App\Services\PowerBiService;
@@ -20,9 +19,6 @@ Route::get('/dashboard', function (PowerBiService $powerBiService) {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/powerbi', [PowerBiController::class, 'index'])->name('powerbi');
     Route::get('/powerbi/pages', [AdminController::class, 'getPowerBiPages'])->name('powerbi.pages');
 });
@@ -36,6 +32,8 @@ Route::middleware(['auth', EnsureUserIsMaster::class])->prefix('admin')->group(f
     Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
     Route::get('/users/{user}/edit', [AdminController::class, 'usersEdit'])->name('admin.users.edit');
     Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('admin.users.update');
+    Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.users.destroy');
 
     Route::get('/settings', [AdminController::class, 'settingsIndex'])->name('admin.settings.index');
+    Route::post('/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
 });

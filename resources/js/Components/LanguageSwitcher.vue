@@ -15,6 +15,7 @@ const currentLang = ref('en');
 
 const items = [
     { value: 'en', label: 'United States', flag: '🇺🇸' },
+    { value: 'pt_BR', label: 'Brasil', flag: '🇧🇷' },
     { value: 'pt_PT', label: 'Portugal', flag: '🇵🇹' },
     { value: 'es', label: 'España', flag: '🇪🇸' },
 ];
@@ -24,12 +25,14 @@ onMounted(() => {
 });
 
 const currentLabel = computed(() => {
-    const found = items.find(i => i.value === currentLang.value || currentLang.value.startsWith(i.value.split('_')[0]));
+    const found = items.find(i => i.value === currentLang.value) ||
+                  items.find(i => currentLang.value.startsWith(i.value.split('_')[0]));
     return found ? found.label : 'United States';
 });
 
 const currentFlag = computed(() => {
-    const found = items.find(i => i.value === currentLang.value || currentLang.value.startsWith(i.value.split('_')[0]));
+    const found = items.find(i => i.value === currentLang.value) ||
+                  items.find(i => currentLang.value.startsWith(i.value.split('_')[0]));
     return found ? found.flag : '🇺🇸';
 });
 

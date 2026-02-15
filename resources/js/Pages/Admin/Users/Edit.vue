@@ -7,9 +7,21 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
 import Checkbox from '@/Components/Checkbox.vue';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import axios from 'axios';
-import { Loader2 } from 'lucide-vue-next';
+import {
+    Loader2,
+    AlertCircle,
+    User,
+    Lock,
+    ShieldCheck,
+    ArrowLeft,
+    CheckCircle2,
+    Layout,
+    Save,
+    UserCheck,
+    UserX
+} from 'lucide-vue-next';
 
 const props = defineProps({
     user: Object,
@@ -52,192 +64,283 @@ const togglePageAccess = (pageName) => {
         form.allowed_pages.push(pageName);
     }
 };
+
+const isFormValid = computed(() => {
+    const basicInfo = form.name.trim() !== '' &&
+                     form.email.trim() !== '';
+
+    const permissions = form.is_master || (form.allowed_pages && form.allowed_pages.length > 0);
+
+    // In edit mode, we also want to ensure something was actually changed (isDirty)
+    return basicInfo && permissions && form.isDirty;
+});
 </script>
 
 <template>
     <Head :title="$t('Edit User')" />
 
     <DashboardLayout>
-        <div class="py-12 bg-slate-50 min-h-screen">
-            <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+        <div class="py-12 bg-[#f8fafc] min-h-screen">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+                <!-- Breadcrumbs/Back -->
+                <div class="mb-8">
+                    <Link
+                        :href="route('admin.users.index')"
+                        class="inline-flex items-center text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors group"
+                    >
+                        <ArrowLeft class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+                        VOLTAR PARA LISTA
+                    </Link>
+                </div>
 
                 <!-- Page Header -->
-                <div class="mb-10 text-center">
-                    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">{{ $t('Edit User') }}</h1>
-                    <p class="mt-3 text-lg text-slate-500 max-w-2xl mx-auto">{{ $t('Update user details and permissions.') }}</p>
+                <div class="mb-10">
+                    <h1 class="text-4xl font-black text-slate-900 tracking-tight flex items-center">
+                        <span class="bg-indigo-600 w-2 h-10 rounded-full mr-4"></span>
+                        {{ $t('Edit User') }}
+                    </h1>
+                    <p class="mt-3 text-slate-500 font-medium text-lg">{{ $t('Update user details and permissions.') }}</p>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="p-8 sm:p-12">
-                        <form @submit.prevent="submit" class="space-y-12">
-
-                            <!-- Section: Account Information -->
+                <form @submit.prevent="submit" class="space-y-8">
+                    <!-- Section: Account Information -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md">
+                        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center space-x-4">
+                            <div class="p-2.5 bg-indigo-100 rounded-lg text-indigo-600">
+                                <User class="w-6 h-6" />
+                            </div>
                             <div>
-                                <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-8 flex items-center">
-                                    <svg class="w-6 h-6 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                    {{ $t('Account Information') }}
-                                </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <!-- Name -->
-                                    <div class="space-y-2">
-                                        <InputLabel for="name" :value="$t('Name')" class="text-base font-medium text-slate-700" />
-                                        <TextInput
-                                            id="name"
-                                            type="text"
-                                            class="block w-full py-3 px-4 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-shadow duration-200"
-                                            v-model="form.name"
-                                            required
-                                            autofocus
-                                            autocomplete="name"
-                                            :placeholder="$t('Full Name')"
-                                        />
-                                        <InputError :message="form.errors.name" />
-                                    </div>
+                                <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ $t('Account Information') }}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Dados básicos do perfil</p>
+                            </div>
+                        </div>
 
-                                    <!-- Email -->
-                                    <div class="space-y-2">
-                                        <InputLabel for="email" :value="$t('Email')" class="text-base font-medium text-slate-700" />
-                                        <TextInput
-                                            id="email"
-                                            type="email"
-                                            class="block w-full py-3 px-4 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-shadow duration-200"
-                                            v-model="form.email"
-                                            required
-                                            autocomplete="username"
-                                            placeholder="user@example.com"
-                                        />
-                                        <InputError :message="form.errors.email" />
-                                    </div>
-                                </div>
+                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-2">
+                                <InputLabel for="name" :value="$t('Name')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                                <TextInput
+                                    id="name"
+                                    type="text"
+                                    class="block w-full py-4 px-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                                    v-model="form.name"
+                                    required
+                                    autofocus
+                                    autocomplete="name"
+                                    :placeholder="$t('Full Name')"
+                                />
+                                <InputError :message="form.errors.name" />
                             </div>
 
-                            <!-- Section: Security -->
-                            <div>
-                                <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-8 flex items-center">
-                                    <svg class="w-6 h-6 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                    {{ $t('Security') }}
-                                </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="space-y-2">
-                                        <InputLabel for="password" :value="$t('Password')" class="text-base font-medium text-slate-700" />
-                                        <PasswordInput
-                                            id="password"
-                                            class="block w-full py-3 px-4 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-shadow duration-200"
-                                            v-model="form.password"
-                                            autocomplete="new-password"
-                                            :placeholder="$t('Leave blank to keep current')"
-                                        />
-                                        <InputError :message="form.errors.password" />
-                                    </div>
-                                    <div class="space-y-2">
-                                        <InputLabel for="password_confirmation" :value="$t('Confirm Password')" class="text-base font-medium text-slate-700" />
-                                        <PasswordInput
-                                            id="password_confirmation"
-                                            class="block w-full py-3 px-4 rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-shadow duration-200"
-                                            v-model="form.password_confirmation"
-                                            autocomplete="new-password"
-                                            :placeholder="$t('Leave blank to keep current')"
-                                        />
-                                        <InputError :message="form.errors.password_confirmation" />
-                                    </div>
-                                </div>
+                            <div class="space-y-2">
+                                <InputLabel for="email" :value="$t('Email')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                                <TextInput
+                                    id="email"
+                                    type="email"
+                                    class="block w-full py-4 px-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                                    v-model="form.email"
+                                    required
+                                    autocomplete="username"
+                                    placeholder="user@example.com"
+                                />
+                                <InputError :message="form.errors.email" />
                             </div>
-
-                            <!-- Section: Permissions & Status -->
-                            <div>
-                                <h3 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-8 flex items-center">
-                                    <svg class="w-6 h-6 mr-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                    {{ $t('Permissions & Status') }}
-                                </h3>
-
-                                <div class="space-y-8">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <!-- Is Active Checkbox Card -->
-                                        <div
-                                            class="relative flex items-start p-6 rounded-xl border-2 transition-all cursor-pointer group"
-                                            :class="form.is_active ? 'border-green-500 bg-green-50/50' : 'border-slate-200 bg-white hover:border-green-300 hover:bg-slate-50'"
-                                            @click="form.is_active = !form.is_active"
-                                        >
-                                            <div class="flex items-center h-6">
-                                                <Checkbox name="is_active" v-model:checked="form.is_active" id="is_active" class="h-5 w-5 text-green-600 focus:ring-green-500 border-slate-300 rounded" @click.stop />
-                                            </div>
-                                            <div class="ml-4 flex-1">
-                                                <label for="is_active" class="text-base font-bold text-slate-900 select-none cursor-pointer block mb-1 group-hover:text-green-700 transition-colors">{{ $t('Active Account') }}</label>
-                                                <p class="text-sm text-slate-600 select-none leading-relaxed">{{ $t('Allow this user to log in and access the platform.') }}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Master Privileges -->
-                                        <div
-                                            class="relative flex items-start p-6 rounded-xl border-2 transition-all cursor-pointer group"
-                                            :class="form.is_master ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50'"
-                                            @click="form.is_master = !form.is_master"
-                                        >
-                                            <div class="flex items-center h-6">
-                                                <Checkbox name="is_master" v-model:checked="form.is_master" id="is_master" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded" @click.stop />
-                                            </div>
-                                            <div class="ml-4 flex-1">
-                                                <label for="is_master" class="text-base font-bold text-slate-900 select-none cursor-pointer block mb-1 group-hover:text-indigo-700 transition-colors">{{ $t('Grant Master Privileges') }}</label>
-                                                <p class="text-sm text-slate-600 select-none leading-relaxed">{{ $t('Grants full administrative access to all system settings and users.') }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Allowed Pages (Only visible if NOT master) -->
-                                    <div v-if="!form.is_master" class="space-y-4">
-                                        <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center">
-                                            {{ $t('Allowed Reports') }}
-                                            <Loader2 v-if="isLoadingPages" class="w-4 h-4 ml-2 animate-spin text-slate-400" />
-                                        </h4>
-
-                                        <div v-if="isLoadingPages" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div v-for="n in 4" :key="n" class="h-14 bg-slate-100 rounded-lg animate-pulse"></div>
-                                        </div>
-
-                                        <p v-else-if="availablePages.length === 0" class="text-sm text-slate-500 italic">{{ $t('No reports available from Power BI.') }}</p>
-
-                                        <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div
-                                                v-for="page in availablePages.filter(p => !p.displayName.toUpperCase().includes('HOME'))"
-                                                :key="page.name"
-                                                class="relative flex items-center p-4 rounded-lg border transition-all cursor-pointer"
-                                                :class="form.allowed_pages.includes(page.name) ? 'border-blue-500 bg-blue-50/30' : 'border-slate-200 bg-white hover:border-blue-300'"
-                                                @click="togglePageAccess(page.name)"
-                                            >
-                                                <div class="flex items-center h-5">
-                                                    <input
-                                                        type="checkbox"
-                                                        :checked="form.allowed_pages.includes(page.name)"
-                                                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
-                                                        @click.stop="togglePageAccess(page.name)"
-                                                    />
-                                                </div>
-                                                <div class="ml-3 text-sm">
-                                                    <span class="font-medium text-slate-900">{{ page.displayName.replace(/_/g, ' ') }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div v-else class="p-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm border border-yellow-200">
-                                        {{ $t('Master administrators have access to all reports automatically.') }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Actions -->
-                            <div class="flex items-center justify-end gap-x-8 pt-8 border-t border-slate-100">
-                                <Link :href="route('admin.users.index')" class="text-sm font-semibold leading-6 text-slate-600 hover:text-slate-900 transition-colors uppercase tracking-wide">
-                                    {{ $t('Cancel') }}
-                                </Link>
-
-                                <PrimaryButton :class="{ 'opacity-75 cursor-wait': form.processing }" :disabled="form.processing" class="px-10 py-3 text-base font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transform transition-all duration-200">
-                                    {{ $t('Save Changes') }}
-                                </PrimaryButton>
-                            </div>
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- Section: Security -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md">
+                        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center space-x-4">
+                            <div class="p-2.5 bg-amber-100 rounded-lg text-amber-600">
+                                <Lock class="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ $t('Security') }}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Alterar senha (opcional)</p>
+                            </div>
+                        </div>
+
+                        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-2">
+                                <InputLabel for="password" :value="$t('Password')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                                <PasswordInput
+                                    id="password"
+                                    class="block w-full py-4 px-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                                    v-model="form.password"
+                                    autocomplete="new-password"
+                                    :placeholder="$t('Leave blank to keep current')"
+                                />
+                                <InputError :message="form.errors.password" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <InputLabel for="password_confirmation" :value="$t('Confirm Password')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                                <PasswordInput
+                                    id="password_confirmation"
+                                    class="block w-full py-4 px-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                                    v-model="form.password_confirmation"
+                                    autocomplete="new-password"
+                                    :placeholder="$t('Leave blank to keep current')"
+                                />
+                                <InputError :message="form.errors.password_confirmation" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Permissions & Status -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transition-all hover:shadow-md">
+                        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="p-2.5 bg-emerald-100 rounded-lg text-emerald-600">
+                                    <ShieldCheck class="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ $t('Permissions & Status') }}</h3>
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Níveis de acesso e estado da conta</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-8 space-y-10">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Is Active Card -->
+                                <div
+                                    class="relative p-6 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between group"
+                                    :class="form.is_active ? 'border-emerald-500 bg-emerald-50/30' : 'border-rose-200 bg-rose-50/20 hover:border-rose-300'"
+                                    @click="form.is_active = !form.is_active"
+                                >
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 rounded-lg flex items-center justify-center transition-colors" :class="form.is_active ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100' : 'bg-rose-600 text-white shadow-lg shadow-rose-100'">
+                                            <UserCheck v-if="form.is_active" class="w-6 h-6" />
+                                            <UserX v-else class="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p class="text-base font-black text-slate-800 group-hover:text-emerald-700 transition-colors">{{ $t('Active Account') }}</p>
+                                            <p class="text-xs text-slate-500 font-bold tracking-tight mt-0.5">{{ $t('Allow this user to log in and access the platform.') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center pr-2">
+                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all" :class="form.is_active ? 'bg-emerald-600 border-emerald-600' : 'bg-rose-600 border-rose-600'">
+                                            <CheckCircle2 class="w-4 h-4 text-white" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Master Toggle Card -->
+                                <div
+                                    class="relative p-6 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between group"
+                                    :class="form.is_master ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-100 bg-slate-50/50 hover:border-slate-200'"
+                                    @click="form.is_master = !form.is_master"
+                                >
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 rounded-lg flex items-center justify-center transition-colors" :class="form.is_master ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-200 text-slate-400'">
+                                            <ShieldCheck class="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p class="text-base font-black text-slate-800 group-hover:text-indigo-600 transition-colors">{{ $t('Grant Master Privileges') }}</p>
+                                            <p class="text-xs text-slate-500 font-bold tracking-tight mt-0.5 text-ellipsis overflow-hidden break-words">{{ $t('Full administrative access.') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center pr-2">
+                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all" :class="form.is_master ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'">
+                                            <CheckCircle2 v-if="form.is_master" class="w-4 h-4 text-white" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reports Grid -->
+                            <div v-if="!form.is_master" class="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <Layout class="w-4 h-4 text-indigo-500" />
+                                        <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest">{{ $t('Allowed Reports') }}</h4>
+                                    </div>
+                                    <span v-if="form.allowed_pages.length === 0" class="text-[10px] text-rose-600 font-black animate-pulse flex items-center bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
+                                        <AlertCircle class="w-3 h-3 mr-1" />
+                                        OBRIGATÓRIO SELECIONAR UM
+                                    </span>
+                                    <span v-else class="text-[10px] text-emerald-600 font-black flex items-center bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                                        <CheckCircle2 class="w-3 h-3 mr-1" />
+                                        {{ form.allowed_pages.length }} SELECIONADOS
+                                    </span>
+                                </div>
+
+                                <div v-if="isLoadingPages" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div v-for="n in 4" :key="n" class="h-16 bg-slate-50 rounded-xl animate-pulse border border-slate-100"></div>
+                                </div>
+
+                                <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div
+                                        v-for="page in availablePages.filter(p => !p.displayName.toUpperCase().includes('HOME'))"
+                                        :key="page.name"
+                                        @click="togglePageAccess(page.name)"
+                                        class="relative flex items-center p-4 rounded-xl border-2 transition-all cursor-pointer group hover:shadow-sm"
+                                        :class="form.allowed_pages.includes(page.name) ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-100 bg-white hover:border-indigo-200'"
+                                    >
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all mr-3" :class="form.allowed_pages.includes(page.name) ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-400'">
+                                            <Layout class="w-5 h-5" />
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-black text-slate-800 truncate uppercase tracking-tight group-hover:text-indigo-700 transition-colors">
+                                                {{ page.displayName.replace(/_/g, ' ') }}
+                                            </p>
+                                        </div>
+                                        <div class="ml-2">
+                                            <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all" :class="form.allowed_pages.includes(page.name) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'">
+                                                <CheckCircle2 v-if="form.allowed_pages.includes(page.name)" class="w-3 h-3 text-white" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Master Alert -->
+                            <div v-else class="p-6 bg-amber-50 rounded-xl border border-amber-100 flex items-start space-x-4 animate-in fade-in zoom-in duration-300">
+                                <AlertCircle class="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p class="text-sm font-black text-amber-900 uppercase tracking-tight">{{ $t('Acesso Total Habilitado') }}</p>
+                                    <p class="text-sm text-amber-700 font-medium mt-1 leading-relaxed">
+                                        {{ $t('Como Administrador Mestre, este usuário terá acesso automático a todos os relatórios presentes e futuros do sistema.') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="flex items-center justify-end space-x-6 pt-6">
+                        <Link
+                            :href="route('admin.users.index')"
+                            class="text-sm font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
+                        >
+                            {{ $t('Cancel') }}
+                        </Link>
+
+                        <PrimaryButton
+                            :disabled="!isFormValid || form.processing"
+                            class="px-12 py-4 text-base font-black uppercase tracking-[0.2em] rounded-xl bg-indigo-600 shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed group"
+                        >
+                            <Loader2 v-if="form.processing" class="w-5 h-5 mr-3 animate-spin" />
+                            <Save v-else class="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform" />
+                            {{ $t('Save Changes') }}
+                        </PrimaryButton>
+                    </div>
+                </form>
             </div>
         </div>
     </DashboardLayout>
 </template>
+
+<style scoped>
+.animate-in {
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-in-from-top-4 { from { transform: translateY(-1rem); } to { transform: translateY(0); } }
+@keyframes zoom-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.fade-in { animation-name: fade-in; }
+.slide-in-from-top-4 { animation-name: slide-in-from-top-4; }
+.zoom-in { animation-name: zoom-in; }
+</style>
