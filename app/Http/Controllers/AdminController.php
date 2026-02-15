@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+
+class AdminController extends Controller
+{
+    /**
+     * Display the users management page.
+     */
+    public function usersIndex()
+    {
+        $users = User::all(); // Simple list for now. In real app, paginate.
+        return \Inertia\Inertia::render('Admin/Users/Index', [
+            'users' => $users
+        ]);
+    }
+
+    /**
+     * Display the user creation page.
+     */
+    /**
+     * Display the user creation page.
+     */
+    /**
+     * Display the user creation page.
+     */
+    public function usersCreate()
+    {
+        return \Inertia\Inertia::render('Admin/Users/Create');
+    }
+
+    /**
+     * Display the settings page.
+     */
+    public function settingsIndex()
+    {
+        return \Inertia\Inertia::render('Admin/Settings/Index');
+    }
+
+    /**
+     * Store a new master admin or user.
+     */
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'is_master' => ['boolean'],
+            'is_active' => ['boolean'],
+            'allowed_pages' => ['nullable', 'array'],
+            'tenant_id' => ['nullable', 'string'],
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'is_master' => $request->boolean('is_master', false),
+            'is_active' => $request->boolean('is_active', true),
+            'tenant_id' => $request->input('tenant_id'),
+            'allowed_pages' => $request->input('allowed_pages', []),
+        ]);
+
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+    }
+
+    /**
+     * Display the user edit page.
+     */
+    public function usersEdit(User $user)
+    {
+        return \Inertia\Inertia::render('Admin/Users/Edit', [
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Update the specified user.
+     */
+    public function updateUser(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'is_master' => ['boolean'],
+            'is_active' => ['boolean'],
+            'allowed_pages' => ['nullable', 'array'],
+        ]);
+
+        $userData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'is_master' => $request->boolean('is_master'),
+            'is_active' => $request->boolean('is_active'),
+            'allowed_pages' => $request->input('allowed_pages', []),
+        ];
+
+        if ($request->filled('password')) {
+            $userData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($userData);
+
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+    }
+
+    /**
+     * Get Power BI Pages (API)
+     */
+    public function getPowerBiPages(\App\Services\PowerBiService $powerBiService)
+    {
+        try {
+            return response()->json($powerBiService->getReportPages());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+}
