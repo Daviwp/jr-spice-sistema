@@ -2,7 +2,7 @@
 import { onMounted, ref, watch, computed } from 'vue';
 import * as pbi from 'powerbi-client';
 import { usePage } from '@inertiajs/vue3';
-import { BarChart3, Mail, LayoutDashboard, Loader2 } from 'lucide-vue-next';
+import { BarChart3, Mail, LayoutDashboard, Loader2, Clock, Layout } from 'lucide-vue-next';
 import axios from 'axios';
 
 /**
@@ -306,7 +306,7 @@ watch(() => props.embedConfig, (newConfig) => {
                     <div class="max-w-7xl mx-auto px-12 -mt-16 pb-24 relative z-10">
 
                         <!-- SKELETON LOADER FOR GRID -->
-                        <div v-if="!props.embedConfig || pages.length === 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-if="isLoading && pages.length === 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div v-for="n in 3" :key="n" class="h-64 bg-white rounded-2xl border border-slate-100 p-6 flex flex-col overflow-hidden">
                                 <div class="w-12 h-12 rounded-xl mb-4 shimmer"></div>
                                 <div class="h-4 w-24 rounded mb-2 shimmer"></div>
@@ -315,7 +315,27 @@ watch(() => props.embedConfig, (newConfig) => {
                             </div>
                         </div>
 
-                        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- NO ACCESS MESSAGE -->
+                        <div v-else-if="!isLoading && pages.length > 0 && filteredPages.length === 0" class="col-span-full py-20 flex flex-col items-center justify-center text-center space-y-6 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm animate-in fade-in zoom-in duration-500">
+                             <div class="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+                                 <Layout class="h-8 w-8 text-blue-600" />
+                             </div>
+
+                             <div class="space-y-2 max-w-sm">
+                                 <h3 class="text-xl font-bold text-slate-900">{{ $t('No Access to Reports') }}</h3>
+                                 <p class="text-slate-500 text-sm leading-relaxed font-medium">
+                                     {{ $t('You currently do not have any reports assigned to your account. Our administration team will configure your permissions shortly. Please check back soon.') }}
+                                 </p>
+                             </div>
+
+                             <div class="pt-4 flex items-center justify-center space-x-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                 <Clock class="h-3 w-3" />
+                                 <span>{{ $t('Awaiting Approval') }}</span>
+                             </div>
+                        </div>
+
+                        <!-- REPORTS GRID -->
+                        <div v-else-if="filteredPages.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div
                                 v-for="(page, index) in filteredPages"
                                 :key="page.name"

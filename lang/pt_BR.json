@@ -141,5 +141,15 @@
   "Manage your personal settings and security preferences.": "Gerencie suas configurações pessoais e preferências de segurança.",
   "Basic Info": "Informações Básicas",
   "Profile updated successfully.": "Perfil atualizado com sucesso.",
-  "Password updated successfully.": "Senha atualizada com sucesso."
+  "Password updated successfully.": "Senha atualizada com sucesso.",
+  "User status updated.": "Status do usuário atualizado.",
+  "Users updated successfully.": "Usuários atualizados com sucesso.",
+  "You cannot remove your own master status or deactivate yourself.": "Você não pode remover seu próprio status de mestre ou desativar a si mesmo.",
+  "You cannot deactivate yourself.": "Você não pode desativar a si mesmo.",
+  "No changes allowed for your own account.": "Nenhuma alteração permitida para sua própria conta.",
+  "Your account was not deactivated.": "Sua conta não foi desativada.",
+  "You cannot delete yourself.": "Você não pode excluir a si mesmo.",
+  "No Access to Reports": "Sem acesso aos relatórios",
+  "You currently do not have any reports assigned to your account. Our administration team will configure your permissions shortly. Please check back soon.": "Atualmente você não possui relatórios atribuídos à sua conta. Nossa equipe de administração configurará suas permissões em breve. Por favor, volte mais tarde.",
+  "Awaiting Approval": "Aguardando Aprovação"
 }

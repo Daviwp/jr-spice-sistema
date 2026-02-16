@@ -139,11 +139,15 @@ class AdminController extends Controller
             'allowed_pages' => ['nullable', 'array'],
         ]);
 
+        if ($user->id === $request->user()->id) {
+            if (!$request->boolean('is_master') || !$request->boolean('is_active')) {
+                return back()->with('error', __('You cannot remove your own master status or deactivate yourself.'));
+            }
+        }
+
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
-            'is_master' => $request->boolean('is_master'),
-            'is_active' => $request->boolean('is_active'),
             'allowed_pages' => $request->input('allowed_pages', []),
         ];
 
@@ -153,6 +157,7 @@ class AdminController extends Controller
 
         $user->fill($userData);
         $user->is_master = $request->boolean('is_master');
+        $user->is_active = $request->boolean('is_active');
         $user->save();
 
         return redirect()->route('admin.users.index')->with('success', __('User updated successfully.'));
@@ -174,6 +179,10 @@ class AdminController extends Controller
      */
     public function toggleUserStatus(User $user)
     {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', __('You cannot deactivate yourself.'));
+        }
+
         $user->is_active = !$user->is_active;
         $user->save();
 
@@ -191,11 +200,28 @@ class AdminController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        User::whereIn('id', $request->ids)->update([
+        $ids = $request->ids;
+        $currentUserExcluded = false;
+
+        if (!$request->is_active && in_array(auth()->id(), $ids)) {
+            $ids = array_filter($ids, fn($id) => $id != auth()->id());
+            $currentUserExcluded = true;
+        }
+
+        if (empty($ids)) {
+            return back()->with('error', __('No changes allowed for your own account.'));
+        }
+
+        User::whereIn('id', $ids)->update([
             'is_active' => $request->is_active
         ]);
 
-        return back()->with('success', __('Users updated successfully.'));
+        $message = __('Users updated successfully.');
+        if ($currentUserExcluded) {
+            $message .= ' ' . __('Your account was not deactivated.');
+        }
+
+        return back()->with('success', $message);
     }
 
     /**
@@ -203,8 +229,10 @@ class AdminController extends Controller
      */
     public function deleteUser(User $user)
     {
-        // Don't allow deleting yourself or master users if needed
-        // For now, simple delete
+        if ($user->id === auth()->id()) {
+            return back()->with('error', __('You cannot delete yourself.'));
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', __('User deleted successfully.'));
