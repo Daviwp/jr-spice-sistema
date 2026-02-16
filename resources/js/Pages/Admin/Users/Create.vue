@@ -73,7 +73,7 @@ const isFormValid = computed(() => {
 
     <DashboardLayout>
         <div class="py-12 bg-[#f8fafc] min-h-screen">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <!-- Breadcrumbs/Back -->
                 <div class="mb-8">
@@ -82,7 +82,7 @@ const isFormValid = computed(() => {
                         class="inline-flex items-center text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors group"
                     >
                         <ArrowLeft class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
-                        VOLTAR PARA LISTA
+                        {{ $t('Back to List') }}
                     </Link>
                 </div>
 
@@ -104,7 +104,7 @@ const isFormValid = computed(() => {
                             </div>
                             <div>
                                 <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ $t('Account Information') }}</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Dados básicos do perfil</p>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">{{ $t('Basic profile data') }}</p>
                             </div>
                         </div>
 
@@ -148,7 +148,7 @@ const isFormValid = computed(() => {
                             </div>
                             <div>
                                 <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ $t('Security') }}</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Credenciais de acesso</p>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">{{ $t('Access credentials') }}</p>
                             </div>
                         </div>
 
@@ -190,7 +190,7 @@ const isFormValid = computed(() => {
                                 </div>
                                 <div>
                                     <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ $t('Permissions') }}</h3>
-                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Níveis de acesso e relatórios</p>
+                                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">{{ $t('Access levels and reports') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -227,11 +227,11 @@ const isFormValid = computed(() => {
                                     </div>
                                     <span v-if="form.allowed_pages.length === 0" class="text-[10px] text-rose-600 font-black animate-pulse flex items-center bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
                                         <AlertCircle class="w-3 h-3 mr-1" />
-                                        OBRIGATÓRIO SELECIONAR UM
+                                        {{ $t('REQUIRED TO SELECT ONE') }}
                                     </span>
                                     <span v-else class="text-[10px] text-emerald-600 font-black flex items-center bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                                         <CheckCircle2 class="w-3 h-3 mr-1" />
-                                        {{ form.allowed_pages.length }} SELECIONADOS
+                                        {{ form.allowed_pages.length }} {{ $t('SELECTED') }}
                                     </span>
                                 </div>
 
@@ -268,9 +268,9 @@ const isFormValid = computed(() => {
                             <div v-else class="p-6 bg-amber-50 rounded-xl border border-amber-100 flex items-start space-x-4 animate-in fade-in zoom-in duration-300">
                                 <AlertCircle class="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <p class="text-sm font-black text-amber-900 uppercase tracking-tight">{{ $t('Acesso Total Habilitado') }}</p>
+                                    <p class="text-sm font-black text-amber-900 uppercase tracking-tight">{{ $t('Full Access Enabled') }}</p>
                                     <p class="text-sm text-amber-700 font-medium mt-1 leading-relaxed">
-                                        {{ $t('Como Administrador Mestre, este usuário terá acesso automático a todos os relatórios presentes e futuros do sistema.') }}
+                                        {{ $t('As a Master Administrator, this user will have automatic access to all current and future reports in the system.') }}
                                     </p>
                                 </div>
                             </div>

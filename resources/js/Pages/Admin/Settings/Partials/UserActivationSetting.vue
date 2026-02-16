@@ -41,8 +41,8 @@ const submit = () => {
                     <ShieldCheck class="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 tracking-tight">Segurança e Acessos</h3>
-                    <p class="text-xs text-slate-500">Configurações globais de registro de usuários.</p>
+                    <h3 class="text-lg font-bold text-slate-800 tracking-tight">{{ $t('Security & Access') }}</h3>
+                    <p class="text-xs text-slate-500">{{ $t('Global user registration settings.') }}</p>
                 </div>
             </div>
         </div>
@@ -51,10 +51,10 @@ const submit = () => {
             <div class="flex items-start justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 transition-colors hover:bg-slate-100/50">
                 <div class="space-y-1 pr-4">
                     <label for="registration_requires_activation" class="text-sm font-bold text-slate-800 cursor-pointer">
-                        Requerer Ativação Manual
+                        {{ $t('Require Manual Activation') }}
                     </label>
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Quando ativado, novos usuários registrados precisarão ser aprovados manualmente por um administrador master antes de conseguirem fazer login.
+                        {{ $t('When enabled, new registered users will need manual approval by a master admin before being able to log in.') }}
                     </p>
                 </div>
 
@@ -71,21 +71,7 @@ const submit = () => {
                 </div>
             </div>
 
-            <!-- Transition or Success Message (Optional) -->
-            <transition name="fade">
-                <div v-if="form.recentlySuccessful" class="flex items-center space-x-2 text-emerald-600 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                    <ShieldCheck class="w-4 h-4" />
-                    <span class="text-xs font-bold uppercase tracking-wider">Configurações salvas com sucesso!</span>
-                </div>
-            </transition>
 
-            <!-- Error Message -->
-            <transition name="fade">
-                <div v-if="form.hasErrors" class="flex items-center space-x-2 text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-100">
-                    <AlertCircle class="w-4 h-4" />
-                    <span class="text-xs font-bold uppercase tracking-wider">Erro ao salvar configurações.</span>
-                </div>
-            </transition>
 
             <!-- Action Button -->
             <div class="flex justify-end pt-2">
@@ -96,7 +82,7 @@ const submit = () => {
                 >
                     <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
                     <Save v-else class="w-4 h-4 mr-2" />
-                    Salvar Alterações
+                    {{ $t('Save Changes') }}
                 </button>
             </div>
         </form>

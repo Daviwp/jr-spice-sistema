@@ -70,8 +70,8 @@ import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 
             <!-- Footer (Fixed at bottom of this column) -->
             <div class="py-8 px-12 flex-shrink-0 border-t border-slate-50 bg-white">
-                <div class="flex flex-col sm:flex-row justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest gap-4">
-                    <span class="hover:text-slate-600 transition-colors cursor-default">&copy; {{ new Date().getFullYear() }} JRSPICE</span>
+                <div class="flex flex-col sm:flex-row justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest gap-4">
+                    <span class="hover:text-slate-600 transition-colors cursor-default">{{ $t('Copyright • 2026 All rights reserved') }}</span>
                     <div class="flex space-x-8">
                         <a href="#" class="hover:text-blue-600 transition-colors">{{ $t('PRIVACY') }}</a>
                         <a href="#" class="hover:text-blue-600 transition-colors">{{ $t('TERMS') }}</a>

@@ -4,14 +4,15 @@ import { Head, Link } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { Trash2, Edit2, UserPlus, ShieldCheck, Search, Users, UserCheck } from 'lucide-vue-next';
+import { Trash2, Edit2, UserPlus, ShieldCheck, Search, Users, UserCheck, Filter, CheckCircle } from 'lucide-vue-next';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+import ToggleSwitch from '@/Components/ToggleSwitch.vue';
 
 const props = defineProps({
     users: Array,
-    filters: Object,
-    total_users: Number,
     active_users: Number,
+    total_users: Number,
+    filters: Object,
 });
 
 const showConfirmDelete = ref(false);
@@ -39,15 +40,19 @@ const deleteUser = () => {
 };
 
 const searchQuery = ref(props.filters?.search || '');
+const statusFilter = ref(props.filters?.status || '');
 
-// Search Logic with debounce
+// Search & Filter Logic with debounce
 let timeout;
-watch(searchQuery, (value) => {
+const performSearch = () => {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
         router.get(
             route('admin.users.index'),
-            { search: value },
+            {
+                search: searchQuery.value,
+                status: statusFilter.value
+            },
             {
                 preserveState: true,
                 replace: true,
@@ -55,28 +60,43 @@ watch(searchQuery, (value) => {
             }
         );
     }, 300);
+};
+
+watch([searchQuery, statusFilter], () => {
+    performSearch();
 });
 
-const getAvatarColor = (name) => {
-    const colors = [
-        'bg-indigo-50 text-indigo-600 border-indigo-100',
-        'bg-rose-50 text-rose-600 border-rose-100',
-        'bg-emerald-50 text-emerald-600 border-emerald-100',
-        'bg-amber-50 text-amber-600 border-amber-100',
-        'bg-sky-50 text-sky-600 border-sky-100',
-        'bg-violet-50 text-violet-600 border-violet-100',
-    ];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colors[Math.abs(hash) % colors.length];
+const toggleUserStatus = (user) => {
+    router.patch(route('admin.users.toggle-status', user.id), {}, {
+        preserveScroll: true,
+        preserveState: true,
+    });
+};
+
+const activateAllListed = () => {
+    const inactiveIds = props.users
+        .filter(u => !u.is_active)
+        .map(u => u.id);
+
+    if (inactiveIds.length === 0) return;
+
+    router.post(route('admin.users.bulk-status'), {
+        ids: inactiveIds,
+        is_active: true
+    }, {
+        preserveScroll: true,
+    });
+};
+
+const getAvatarColor = () => {
+    return 'bg-indigo-50 text-indigo-600 border-indigo-100';
 };
 
 const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
+    const locale = (document.cookie.split('; ').find(row => row.startsWith('app_locale='))?.split('=')[1] || 'en').replace('_', '-');
+    return new Intl.DateTimeFormat(locale, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -91,7 +111,7 @@ const formatDate = (dateString) => {
 
     <DashboardLayout>
         <div class="py-12 bg-[#f8fafc] min-h-screen">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
                 <!-- Page Header & Stats Row -->
                 <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
@@ -114,7 +134,7 @@ const formatDate = (dateString) => {
                             <div class="flex items-center px-4 py-2">
                                 <UserCheck class="w-4 h-4 text-emerald-500 mr-2" />
                                 <span class="text-sm font-black text-slate-800">{{ active_users }}</span>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1.5 mt-0.5">Ativos</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1.5 mt-0.5">{{ $t('Active') }}</span>
                             </div>
                         </div>
 
@@ -129,16 +149,43 @@ const formatDate = (dateString) => {
 
                 <!-- Filters & Search Bar -->
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="relative flex-1 max-w-md">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search class="h-5 w-5 text-slate-400" />
+                    <div class="flex flex-1 items-center gap-4 max-w-2xl">
+                        <div class="relative flex-1 max-w-md">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Search class="h-5 w-5 text-slate-400" />
+                            </div>
+                            <input
+                                type="text"
+                                v-model="searchQuery"
+                                :placeholder="$t('Search by name or email...')"
+                                class="block w-full pl-11 pr-4 py-3.5 rounded-xl bg-white border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium text-slate-600 placeholder-slate-400 border shadow-sm"
+                            />
                         </div>
-                        <input
-                            type="text"
-                            v-model="searchQuery"
-                            placeholder="Buscar por nome ou email..."
-                            class="block w-full pl-11 pr-4 py-3.5 rounded-xl bg-white border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium text-slate-600 placeholder-slate-400 border shadow-sm"
-                        />
+
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Filter class="h-4 w-4 text-slate-400" />
+                            </div>
+                            <select
+                                v-model="statusFilter"
+                                class="block w-full pl-10 pr-10 py-3.5 rounded-xl bg-white border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-bold text-xs uppercase tracking-widest text-slate-600 border shadow-sm appearance-none cursor-pointer"
+                            >
+                                <option value="">{{ $t('All Status') }}</option>
+                                <option value="active">{{ $t('Active') }}</option>
+                                <option value="inactive">{{ $t('Inactive') }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Actions -->
+                    <div v-if="statusFilter === 'inactive' && users.length > 0" class="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <PrimaryButton
+                            @click="activateAllListed"
+                            class="px-6 py-3.5 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl bg-emerald-600 shadow-xl shadow-emerald-100 transition-all hover:scale-[1.02] active:scale-[0.98] border-none"
+                        >
+                            <CheckCircle class="w-4 h-4 mr-2" />
+                            {{ $t('Activate All Listed') }}
+                        </PrimaryButton>
                     </div>
                 </div>
 
@@ -152,7 +199,7 @@ const formatDate = (dateString) => {
                                     <th scope="col" class="px-8 py-6 text-left text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Email') }}</th>
                                     <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Role') }}</th>
                                     <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Status') }}</th>
-                                    <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Criado em') }}</th>
+                                    <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Created at') }}</th>
                                     <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em] transition-all">{{ $t('Actions') }}</th>
                                 </tr>
                             </thead>
@@ -188,13 +235,17 @@ const formatDate = (dateString) => {
                                         </div>
                                     </td>
                                     <td class="px-8 py-5 whitespace-nowrap text-center">
-                                        <div v-if="user.is_active !== false" class="inline-flex items-center px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border-2 border-emerald-100/50">
-                                            <div class="w-1.5 h-1.5 bg-emerald-600 rounded-full mr-2 animate-pulse"></div>
-                                            {{ $t('Active') }}
-                                        </div>
-                                        <div v-else class="inline-flex items-center px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border-2 border-rose-100/50">
-                                            <div class="w-1.5 h-1.5 bg-rose-600 rounded-full mr-2"></div>
-                                            {{ $t('Inactive') }}
+                                        <div class="flex flex-col items-center justify-center space-y-2">
+                                            <ToggleSwitch
+                                                :model-value="user.is_active"
+                                                @change="toggleUserStatus(user)"
+                                            />
+                                            <div v-if="user.is_active !== false" class="text-[9px] font-black uppercase tracking-tighter text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                                {{ $t('Active') }}
+                                            </div>
+                                            <div v-else class="text-[9px] font-black uppercase tracking-tighter text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">
+                                                {{ $t('Inactive') }}
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="px-8 py-5 whitespace-nowrap text-center">
@@ -207,14 +258,14 @@ const formatDate = (dateString) => {
                                             <Link
                                                 :href="route('admin.users.edit', user.id)"
                                                 class="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm hover:border-slate-200 border border-transparent rounded-xl transition-all active:scale-90"
-                                                title="Editar Usuário"
+                                                :title="$t('Edit User')"
                                             >
                                                 <Edit2 class="w-4 h-4" />
                                             </Link>
                                             <button
                                                 @click="confirmDeleteAction(user)"
                                                 class="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 border border-transparent rounded-xl transition-all active:scale-90"
-                                                title="Excluir Usuário"
+                                                :title="$t('Delete User')"
                                             >
                                                 <Trash2 class="w-4 h-4" />
                                             </button>
@@ -227,8 +278,8 @@ const formatDate = (dateString) => {
                                         <div class="inline-flex items-center justify-center w-20 h-20 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 mb-4">
                                             <Search class="w-8 h-8 text-slate-300" />
                                         </div>
-                                        <h3 class="text-lg font-black text-slate-800">{{ $t('Nenhum usuário encontrado') }}</h3>
-                                        <p class="text-slate-500 font-medium mt-1">Tente ajustar sua busca ou limpar os filtros.</p>
+                                        <h3 class="text-lg font-black text-slate-800">{{ $t('No users found') }}</h3>
+                                        <p class="text-slate-500 font-medium mt-1">{{ $t('Try adjusting your search or clearing the filters.') }}</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -241,10 +292,10 @@ const formatDate = (dateString) => {
         <!-- Reusable Confirmation Modal -->
         <ConfirmationModal
             :show="showConfirmDelete"
-            :title="$t('Excluir Usuário')"
-            :message="$t('Tem certeza que deseja excluir este usuário? Esta ação não poderá ser desfeita.')"
-            :confirm-text="$t('Excluir')"
-            :cancel-text="$t('Cancelar')"
+            :title="$t('Delete User')"
+            :message="$t('Are you sure you want to delete this user? This action cannot be undone.')"
+            :confirm-text="$t('Delete')"
+            :cancel-text="$t('Cancel')"
             :loading="isDeleting"
             @close="showConfirmDelete = false"
             @confirm="deleteUser"

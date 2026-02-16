@@ -55,6 +55,6 @@ class RegisteredUserController extends Controller
             return redirect(route('dashboard', absolute: false));
         }
 
-        return redirect()->route('login')->with('status', 'Your account has been created, but requires manual activation by an administrator.');
+        return redirect()->route('login')->with('status', __('Registration successful! Your account is now pending administrator approval. You will receive access shortly.'));
     }
 }

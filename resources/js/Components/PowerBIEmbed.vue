@@ -297,7 +297,7 @@ watch(() => props.embedConfig, (newConfig) => {
                                 {{ $t('Welcome back, :name', { name: user.name }) }}
                             </h1>
                             <p class="text-slate-400 max-w-2xl text-lg font-light leading-relaxed">
-                                {{ $t('Visualize global performance, export price tables and stay up to date with the latest market data.') }}
+                                {{ $t('This report presents price history, information and analysis related to our product portfolio') }}
                             </p>
                         </div>
                     </div>

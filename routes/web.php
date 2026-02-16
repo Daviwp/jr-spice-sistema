@@ -21,6 +21,10 @@ Route::get('/dashboard', function (PowerBiService $powerBiService) {
 Route::middleware('auth')->group(function () {
     Route::get('/powerbi', [PowerBiController::class, 'index'])->name('powerbi');
     Route::get('/powerbi/pages', [AdminController::class, 'getPowerBiPages'])->name('powerbi.pages');
+
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 
 
@@ -36,4 +40,7 @@ Route::middleware(['auth', EnsureUserIsMaster::class])->prefix('admin')->group(f
 
     Route::get('/settings', [AdminController::class, 'settingsIndex'])->name('admin.settings.index');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+
+    Route::patch('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
+    Route::post('/users/bulk-status', [AdminController::class, 'bulkUpdateStatus'])->name('admin.users.bulk-status');
 });

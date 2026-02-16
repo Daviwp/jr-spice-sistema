@@ -59,8 +59,8 @@ const togglePage = (pageName) => {
                     <Layout class="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 tracking-tight">Páginas Padrão</h3>
-                    <p class="text-xs text-slate-500">Defina quais relatórios novos usuários poderão ver por padrão.</p>
+                    <h3 class="text-lg font-bold text-slate-800 tracking-tight">{{ $t('Default Pages') }}</h3>
+                    <p class="text-xs text-slate-500">{{ $t('Define which reports new users will see by default.') }}</p>
                 </div>
             </div>
         </div>
@@ -109,23 +109,10 @@ const togglePage = (pageName) => {
 
             <div v-else class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                 <Layout class="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p class="text-sm text-slate-500 font-medium">Nenhum relatório encontrado no Power BI.</p>
+                <p class="text-sm text-slate-500 font-medium">{{ $t('No reports available from Power BI.') }}</p>
             </div>
 
-            <!-- Feedback Messages -->
-            <transition name="fade">
-                <div v-if="form.recentlySuccessful" class="flex items-center space-x-2 text-emerald-600 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
-                    <CheckCircle2 class="w-4 h-4" />
-                    <span class="text-xs font-bold uppercase tracking-wider">Configurações salvas com sucesso!</span>
-                </div>
-            </transition>
 
-            <transition name="fade">
-                <div v-if="form.hasErrors" class="flex items-center space-x-2 text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-100">
-                    <AlertCircle class="w-4 h-4" />
-                    <span class="text-xs font-bold uppercase tracking-wider">Erro ao salvar configurações.</span>
-                </div>
-            </transition>
 
             <!-- Action Button -->
             <div class="flex justify-end pt-2 border-t border-slate-100 mt-6">
@@ -136,7 +123,7 @@ const togglePage = (pageName) => {
                 >
                     <Loader2 v-if="form.processing" class="w-4 h-4 mr-2 animate-spin" />
                     <Save v-else class="w-4 h-4 mr-2" />
-                    Salvar Alterações
+                    {{ $t('Save Changes') }}
                 </button>
             </div>
         </form>

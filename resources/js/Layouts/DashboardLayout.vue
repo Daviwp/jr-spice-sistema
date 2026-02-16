@@ -1,14 +1,38 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { watch, onMounted } from 'vue';
+import { toast } from '@/Stores/ToastStore';
+import ToastContainer from '@/Components/ToastContainer.vue';
 import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 
-const user = usePage().props.auth.user;
+const page = usePage();
+const user = page.props.auth.user;
+
+// Watch for flash messages from backend
+watch(() => page.props.flash, (flash) => {
+    if (flash.success) {
+        toast.add(flash.success, 'success');
+    }
+    if (flash.error) {
+        toast.add(flash.error, 'error');
+    }
+}, { deep: true });
+
+// Check for initial flash messages on mount
+onMounted(() => {
+    if (page.props.flash.success) {
+        toast.add(page.props.flash.success, 'success');
+    }
+    if (page.props.flash.error) {
+        toast.add(page.props.flash.error, 'error');
+    }
+});
+
 // Custom Navigation Items
-// Note: We are using 'dashboard' as a placeholder route until specific routes are defined.
 const navItems = [];
 </script>
 
@@ -60,6 +84,11 @@ const navItems = [];
                                         {{ $t('Settings') }}
                                     </DropdownLink>
                                 </div>
+                                <div v-if="!user.is_master" class="border-b border-slate-100 block">
+                                    <DropdownLink :href="route('profile.edit')" class="text-sm">
+                                        {{ $t('My Profile') }}
+                                    </DropdownLink>
+                                </div>
                                 <DropdownLink :href="route('logout')" method="post" as="button" class="text-sm text-red-600 hover:bg-red-50"> {{ $t('Log Out') }} </DropdownLink>
                             </template>
                         </Dropdown>
@@ -70,23 +99,29 @@ const navItems = [];
             <!-- MAIN VIEWPORT -->
             <main class="flex-1 overflow-hidden relative">
                 <!-- Content gets a wrapper now for consistent padding -->
-                <div class="w-full h-full bg-slate-50 overflow-y-auto relative">
-                    <!-- Flash Messages -->
-                    <div v-if="$page.props.flash.success" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                            <span class="block sm:inline">{{ $page.props.flash.success }}</span>
-                        </div>
-                    </div>
-                    <div v-if="$page.props.flash.error" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                            <span class="block sm:inline">{{ $page.props.flash.error }}</span>
-                        </div>
+                <div class="w-full h-full bg-slate-50 overflow-y-auto relative flex flex-col">
+                    <div class="flex-1">
+                        <slot />
                     </div>
 
-                    <slot />
+                    <!-- Discrete Footer -->
+                    <footer class="py-6 px-8 border-t border-slate-200/50 mt-auto bg-white/30 backdrop-blur-sm">
+                        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                                {{ $t('Copyright • 2026 All rights reserved') }}
+                            </p>
+                            <div class="flex items-center space-x-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <a href="#" class="hover:text-blue-600 transition-colors">{{ $t('PRIVACY') }}</a>
+                                <a href="#" class="hover:text-blue-600 transition-colors">{{ $t('TERMS') }}</a>
+                            </div>
+                        </div>
+                    </footer>
                 </div>
             </main>
         </div>
+
+        <!-- Global Toast Container -->
+        <ToastContainer />
     </div>
 </template>
 

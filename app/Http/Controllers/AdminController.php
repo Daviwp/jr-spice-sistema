@@ -24,9 +24,18 @@ class AdminController extends Controller
             });
         }
 
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
         return \Inertia\Inertia::render('Admin/Users/Index', [
             'users' => $query->get(),
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'status']),
             'total_users' => User::count(),
             'active_users' => User::where('is_active', true)->count()
         ]);
@@ -73,7 +82,7 @@ class AdminController extends Controller
             \App\Models\Setting::set($key, $value);
         }
 
-        return back()->with('success', 'Settings updated successfully.');
+        return back()->with('success', __('Settings updated successfully.'));
     }
 
     /**
@@ -91,17 +100,19 @@ class AdminController extends Controller
             'tenant_id' => ['nullable', 'string'],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'is_master' => $request->boolean('is_master', false),
             'is_active' => $request->boolean('is_active', true),
             'tenant_id' => $request->input('tenant_id'),
             'allowed_pages' => $request->input('allowed_pages', []),
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+        $user->is_master = $request->boolean('is_master', false);
+        $user->save();
+
+        return redirect()->route('admin.users.index')->with('success', __('User created successfully.'));
     }
 
     /**
@@ -140,9 +151,11 @@ class AdminController extends Controller
             $userData['password'] = Hash::make($request->password);
         }
 
-        $user->update($userData);
+        $user->fill($userData);
+        $user->is_master = $request->boolean('is_master');
+        $user->save();
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users.index')->with('success', __('User updated successfully.'));
     }
 
     /**
@@ -157,6 +170,35 @@ class AdminController extends Controller
         }
     }
     /**
+     * Toggle user active status.
+     */
+    public function toggleUserStatus(User $user)
+    {
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        return back()->with('success', __('User status updated.'));
+    }
+
+    /**
+     * Bulk update users status.
+     */
+    public function bulkUpdateStatus(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+            'is_active' => 'required|boolean',
+        ]);
+
+        User::whereIn('id', $request->ids)->update([
+            'is_active' => $request->is_active
+        ]);
+
+        return back()->with('success', __('Users updated successfully.'));
+    }
+
+    /**
      * Remove the specified user.
      */
     public function deleteUser(User $user)
@@ -165,6 +207,6 @@ class AdminController extends Controller
         // For now, simple delete
         $user->delete();
 
-        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+        return redirect()->route('admin.users.index')->with('success', __('User deleted successfully.'));
     }
 }
