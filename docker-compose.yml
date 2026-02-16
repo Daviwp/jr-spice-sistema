@@ -2,6 +2,8 @@ services:
   app:
     build: ./docker/php
     container_name: ${COMPOSE_PROJECT_NAME:-laravel}_app
+    restart: unless-stopped
+    user: "1000:1000"
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
@@ -12,11 +14,40 @@ services:
     networks:
       - appnet
 
+  queue-worker:
+    build: ./docker/php
+    container_name: ${COMPOSE_PROJECT_NAME:-laravel}_queue_worker
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    command: php artisan queue:work --timeout=60 --tries=3 --max-jobs=100 --max-time=3600
+    depends_on:
+      - app
+      - db
+    networks:
+      - appnet
 
+  scheduler:
+    build: ./docker/php
+    container_name: ${COMPOSE_PROJECT_NAME:-laravel}_scheduler
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    command: sh -c "while [ true ]; do php artisan schedule:run --no-interaction & sleep 60; done"
+    depends_on:
+      - app
+      - db
+    networks:
+      - appnet
 
   web:
     image: nginx:stable-alpine
     container_name: ${COMPOSE_PROJECT_NAME:-laravel}_web
+    restart: unless-stopped
     depends_on:
       - app
     volumes:
@@ -30,6 +61,7 @@ services:
   db:
     image: mysql:8.0
     container_name: ${COMPOSE_PROJECT_NAME:-laravel}_db
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-laravel}
       MYSQL_ROOT_PASSWORD: root

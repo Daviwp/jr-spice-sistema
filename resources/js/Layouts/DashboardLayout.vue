@@ -33,7 +33,11 @@ onMounted(() => {
 });
 
 // Custom Navigation Items
-const navItems = [];
+const navItems = [
+    { name: 'Dashboard', route: 'dashboard', active: route().current('dashboard') },
+    { name: 'Users', route: 'admin.users.index', active: route().current('admin.users.*'), masterOnly: true },
+    { name: 'Settings', route: 'admin.settings.index', active: route().current('admin.settings.*'), masterOnly: true },
+];
 </script>
 
 <template>
@@ -95,6 +99,24 @@ const navItems = [];
                     </div>
                 </div>
             </header>
+            <!-- SUBMENU (ONLY ON INTERNAL PAGES FOR MASTERS) -->
+            <nav v-if="!route().current('dashboard') && user.is_master" class="bg-white border-b border-slate-200 shadow-sm relative z-40">
+                <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center space-x-1">
+                    <template v-for="item in navItems" :key="item.route">
+                        <Link
+                            :href="route(item.route)"
+                            class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-200 flex items-center group"
+                            :class="item.active
+                                ? 'text-blue-600 bg-blue-50/50'
+                                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'"
+                        >
+                            <div class="w-1.5 h-1.5 rounded-full mr-2 transition-all opacity-0 group-hover:opacity-100"
+                                 :class="item.active ? 'bg-blue-500 opacity-100' : 'bg-slate-300'"></div>
+                            {{ $t(item.name) }}
+                        </Link>
+                    </template>
+                </div>
+            </nav>
 
             <!-- MAIN VIEWPORT -->
             <main class="flex-1 overflow-hidden relative">

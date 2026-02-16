@@ -36,67 +36,87 @@ class PowerBiService
         });
     }
 
-    public function getEmbedConfig($username = null, $roles = null)
+    public function getEmbedConfig($username = null, $roles = null, $forceRefresh = false)
     {
-        $accessToken = $this->getAccessToken();
+        $userId = auth()->id() ?? 'guest';
+        $cacheKey = "pbi_embed_config_{$userId}";
 
-        // 1. Get Report Metadata first to get Dataset ID
-        $reportResponse = Http::withToken($accessToken)
-            ->get("https://api.powerbi.com/v1.0/myorg/groups/{$this->workspaceId}/reports/{$this->reportId}");
-
-        if ($reportResponse->failed()) {
-            throw new \Exception("Failed to fetch report details: " . $reportResponse->body());
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
         }
 
-        $reportData = $reportResponse->json();
+        return Cache::remember($cacheKey, 3600, function () use ($username, $roles) {
+            $accessToken = $this->getAccessToken();
 
-        // Use the API-provided URL to preserve query params (like &config=... for clusterUrl)
-        $embedUrl = $reportData['embedUrl'];
+            // 1. Get Report Metadata first to get Dataset ID
+            $reportResponse = Http::withToken($accessToken)
+                ->get("https://api.powerbi.com/v1.0/myorg/groups/{$this->workspaceId}/reports/{$this->reportId}");
 
-        // Safety check: Ensure hostname is correct (fix api-api if it ever appears, but keep params)
-        if (strpos($embedUrl, 'https://api-api.powerbi.com') === 0) {
-            $embedUrl = str_replace('https://api-api.powerbi.com', 'https://app.powerbi.com', $embedUrl);
-        }
+            if ($reportResponse->failed()) {
+                throw new \Exception("Failed to fetch report details: " . $reportResponse->body());
+            }
 
-        $datasetId = $reportData['datasetId'];
+            $reportData = $reportResponse->json();
+            $embedUrl = $reportData['embedUrl'];
 
-        // 2. Prepare Generate Token Request
-        $tokenRequestData = [
-            'accessLevel' => 'view',
-            'datasetId' => $datasetId
-        ];
+            if (strpos($embedUrl, 'https://api-api.powerbi.com') === 0) {
+                $embedUrl = str_replace('https://api-api.powerbi.com', 'https://app.powerbi.com', $embedUrl);
+            }
 
-        // Add RLS Identity if configured
-        $rlsUsername = $username ?? config('services.powerbi.rls_username');
-        $rlsRoles = $roles ?? config('services.powerbi.rls_roles');
+            $datasetId = $reportData['datasetId'];
 
-        if ($rlsUsername && $rlsRoles) {
-            $tokenRequestData['identities'] = [
-                [
-                    'username' => $rlsUsername,
-                    'roles' => is_array($rlsRoles) ? $rlsRoles : explode(',', $rlsRoles),
-                    'datasets' => [$datasetId]
-                ]
+            // 2. Prepare Generate Token Request
+            $tokenRequestData = [
+                'accessLevel' => 'view',
+                'datasetId' => $datasetId
             ];
+
+            $rlsUsername = $username ?? config('services.powerbi.rls_username');
+            $rlsRoles = $roles ?? config('services.powerbi.rls_roles');
+
+            if ($rlsUsername && $rlsRoles) {
+                $tokenRequestData['identities'] = [
+                    [
+                        'username' => $rlsUsername,
+                        'roles' => is_array($rlsRoles) ? $rlsRoles : explode(',', $rlsRoles),
+                        'datasets' => [$datasetId]
+                    ]
+                ];
+            }
+
+            // 3. Generate Embed Token
+            $tokenResponse = Http::withToken($accessToken)
+                ->post("https://api.powerbi.com/v1.0/myorg/groups/{$this->workspaceId}/reports/{$this->reportId}/GenerateToken", $tokenRequestData);
+
+            if ($tokenResponse->failed()) {
+                throw new \Exception("Failed to generate embed token: " . $tokenResponse->body());
+            }
+
+            $embedToken = $tokenResponse->json()['token'];
+
+            return [
+                'accessToken' => $embedToken,
+                'embedUrl' => $embedUrl,
+                'id' => $this->reportId,
+                'tokenType' => 1,
+                'expiration' => now()->addMinutes(45)->timestamp * 1000,
+                'cached_at' => now()->toIso8601String(),
+                'is_available' => true,
+            ];
+        });
+    }
+
+    public function checkApiStatus()
+    {
+        try {
+            $accessToken = $this->getAccessToken();
+            $response = Http::withToken($accessToken)
+                ->get("https://api.powerbi.com/v1.0/myorg/groups/{$this->workspaceId}");
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            return false;
         }
-
-        // 3. Generate Embed Token
-        $tokenResponse = Http::withToken($accessToken)
-            ->post("https://api.powerbi.com/v1.0/myorg/groups/{$this->workspaceId}/reports/{$this->reportId}/GenerateToken", $tokenRequestData);
-
-        if ($tokenResponse->failed()) {
-            throw new \Exception("Failed to generate embed token: " . $tokenResponse->body());
-        }
-
-        $embedToken = $tokenResponse->json()['token'];
-
-        return [
-            'accessToken' => $embedToken,
-            'embedUrl' => $embedUrl,
-            'id' => $this->reportId,
-            'tokenType' => 1, // Embed
-            'expiration' => now()->addMinutes(45)->timestamp * 1000 // For client-side reference if needed
-        ];
     }
 
     public function getReportPages()

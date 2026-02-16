@@ -81,7 +81,7 @@ const isFormValid = computed(() => {
 
     <DashboardLayout>
         <div class="py-12 bg-[#f8fafc] min-h-screen">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
 
                 <!-- Breadcrumbs/Back -->
                 <div class="mb-8">

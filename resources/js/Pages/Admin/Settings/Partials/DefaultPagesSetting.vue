@@ -71,7 +71,7 @@ const togglePage = (pageName) => {
                 <div v-for="n in 4" :key="n" class="h-16 bg-slate-50 rounded-xl shimmer border border-slate-100"></div>
             </div>
 
-            <div v-else-if="availablePages.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-else-if="availablePages.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <div
                     v-for="page in availablePages"
                     :key="page.name"

@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ReportUpdatedNotification;
 
 class AdminController extends Controller
 {
@@ -65,7 +67,13 @@ class AdminController extends Controller
         });
 
         return \Inertia\Inertia::render('Admin/Settings/Index', [
-            'settings' => $settings
+            'settings' => $settings,
+            'users' => User::where('is_active', true)->select('id', 'name', 'email', 'is_master')->get(),
+            'queue_stats' => [
+                'pending' => \DB::table('jobs')->count(),
+                'failed' => \DB::table('failed_jobs')->count(),
+                'is_running' => \Cache::has('queue_worker_active')
+            ]
         ]);
     }
 
@@ -236,5 +244,60 @@ class AdminController extends Controller
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', __('User deleted successfully.'));
+    }
+
+    /**
+     * Notify users about report update.
+     */
+    public function notifyUpdate(Request $request)
+    {
+        $request->validate([
+            'user_ids' => 'required|array',
+            'user_ids.*' => 'exists:users,id',
+        ]);
+
+        $users = User::whereIn('id', $request->user_ids)->get();
+
+        $date = now()->format('d/m/Y');
+        $time = now()->format('H:i');
+
+        $delay = now();
+
+        foreach ($users as $user) {
+            Mail::to($user->email)->later($delay, new ReportUpdatedNotification($user, $date, $time));
+            $delay = $delay->addSeconds(5); // Space of 5 seconds between emails
+        }
+
+        return back()->with('success', __('Notifications sent successfully.'));
+    }
+
+    /**
+     * Send a test email to the current user.
+     */
+    public function testMail(Request $request)
+    {
+        $user = auth()->user();
+        $date = now()->format('d/m/Y');
+        $time = now()->format('H:i');
+
+        try {
+            Mail::to($user->email)->send(new ReportUpdatedNotification($user, $date, $time));
+            return back()->with('success', __('Test email sent successfully to :email', ['email' => $user->email]));
+        } catch (\Exception $e) {
+            return back()->with('error', __('Failed to send test email: ') . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get real-time queue status (API).
+     */
+    public function getQueueStatus()
+    {
+        return response()->json([
+            'pending' => \DB::table('jobs')->count(),
+            'failed' => \DB::table('failed_jobs')->count(),
+            'is_running' => \Cache::has('queue_worker_active'),
+            'last_check' => now()->toIso8601String()
+        ]);
     }
 }

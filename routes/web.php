@@ -12,11 +12,17 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function (PowerBiService $powerBiService) {
+Route::get('/dashboard', function (Illuminate\Http\Request $request, PowerBiService $powerBiService) {
+    try {
+        $embedConfig = $powerBiService->getEmbedConfig(null, null, $request->has('refresh'));
+    } catch (\Exception $e) {
+        $embedConfig = ['is_available' => false, 'error' => $e->getMessage()];
+    }
+
     return Inertia::render('Dashboard/Index', [
-        'embedConfig' => $powerBiService->getEmbedConfig()
+        'embedConfig' => $embedConfig
     ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'throttle:10,1'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/powerbi', [PowerBiController::class, 'index'])->name('powerbi');
@@ -40,6 +46,9 @@ Route::middleware(['auth', EnsureUserIsMaster::class])->prefix('admin')->group(f
 
     Route::get('/settings', [AdminController::class, 'settingsIndex'])->name('admin.settings.index');
     Route::post('/settings', [AdminController::class, 'updateSettings'])->name('admin.settings.update');
+    Route::post('/settings/notify', [AdminController::class, 'notifyUpdate'])->name('admin.settings.notify');
+    Route::post('/settings/test-mail', [AdminController::class, 'testMail'])->name('admin.settings.test-mail');
+    Route::get('/settings/queue-status', [AdminController::class, 'getQueueStatus'])->name('admin.settings.queue-status');
 
     Route::patch('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('admin.users.toggle-status');
     Route::post('/users/bulk-status', [AdminController::class, 'bulkUpdateStatus'])->name('admin.users.bulk-status');

@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref, watch, computed } from 'vue';
 import * as pbi from 'powerbi-client';
-import { usePage } from '@inertiajs/vue3';
-import { BarChart3, Mail, LayoutDashboard, Loader2, Clock, Layout } from 'lucide-vue-next';
+import { BarChart3, Mail, LayoutDashboard, Loader2, Clock, Layout, RefreshCw } from 'lucide-vue-next';
+import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 
 /**
@@ -23,6 +23,7 @@ const pages = ref([]);
 const activePage = ref('system_home');
 const pendingPage = ref(null);
 const isMounted = ref(false);
+const isRefreshing = ref(false);
 let report = null;
 
 const filteredPages = computed(() => {
@@ -203,6 +204,23 @@ const getPageIcon = (displayName) => {
     return BarChart3;
 };
 
+const refreshDashboard = () => {
+    if (isRefreshing.value) return;
+
+    isRefreshing.value = true;
+    isLoading.value = true;
+
+    router.visit(route('dashboard'), {
+        data: { refresh: 1 },
+        preserveScroll: true,
+        only: ['embedConfig', 'flash'],
+        onFinish: () => {
+            isRefreshing.value = false;
+            isLoading.value = false;
+        }
+    });
+};
+
 onMounted(async () => {
     isMounted.value = true;
     embedReport();
@@ -290,15 +308,55 @@ watch(() => props.embedConfig, (newConfig) => {
                         <div class="absolute bottom-0 left-0 -mb-24 -ml-24 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
                         <div class="max-w-7xl mx-auto w-full z-10 text-white px-12 pb-12">
-                            <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest mb-6 backdrop-blur-sm">
-                                {{ $t('Enterprise Analytics') }}
+                            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                                <div class="space-y-4">
+                                    <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+                                        {{ $t('Enterprise Analytics') }}
+                                    </div>
+                                    <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white">
+                                        {{ $t('Welcome back, :name', { name: user.name }) }}
+                                    </h1>
+                                    <p class="text-slate-400 max-w-2xl text-lg font-light leading-relaxed">
+                                        {{ $t('This report presents price history, information and analysis related to our product portfolio') }}
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center space-x-4">
+                                <!-- Connection Status (Real-time check) -->
+                                <div class="hidden sm:flex items-center px-4 py-2.5 border rounded-xl backdrop-blur-md"
+                                     :class="props.embedConfig?.is_available !== false ? 'bg-green-500/10 border-green-500/20' : 'bg-rose-500/10 border-rose-500/20'">
+
+                                    <div class="relative flex h-2 w-2 mr-3">
+                                        <span v-if="props.embedConfig?.is_available !== false" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2"
+                                              :class="props.embedConfig?.is_available !== false ? 'bg-green-500' : 'bg-rose-500'"></span>
+                                    </div>
+
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5"
+                                              :class="props.embedConfig?.is_available !== false ? 'text-green-400' : 'text-rose-400'">
+                                            {{ props.embedConfig?.is_available !== false ? $t('System Online') : $t('System Offline') }}
+                                        </span>
+                                        <span class="text-[8px] font-medium uppercase tracking-tighter leading-none"
+                                              :class="props.embedConfig?.is_available !== false ? 'text-green-500/70' : 'text-rose-500/70'">
+                                            {{ props.embedConfig?.is_available !== false ? $t('Service Connection') : $t('Service Unavailable') }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                    <button
+                                        @click="refreshDashboard"
+                                        :disabled="isRefreshing"
+                                        class="flex items-center space-x-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 rounded-xl transition-all duration-300 group backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <RefreshCw
+                                            class="w-4 h-4 text-blue-400 group-hover:rotate-180 transition-transform duration-700"
+                                            :class="{ 'animate-spin': isRefreshing }"
+                                        />
+                                        <span class="text-xs font-bold text-white uppercase tracking-wider">{{ $t('Refresh Report') }}</span>
+                                    </button>
+                                </div>
                             </div>
-                            <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-white">
-                                {{ $t('Welcome back, :name', { name: user.name }) }}
-                            </h1>
-                            <p class="text-slate-400 max-w-2xl text-lg font-light leading-relaxed">
-                                {{ $t('This report presents price history, information and analysis related to our product portfolio') }}
-                            </p>
                         </div>
                     </div>
 
