@@ -22,7 +22,40 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        // Dynamic SMTP Configuration
+        // Load dynamic SMTP settings on boot and before each queue job
+        $this->loadDynamicSmtpSettings();
+
+        \Illuminate\Support\Facades\Queue::before(function (\Illuminate\Queue\Events\JobProcessing $event) {
+            $this->loadDynamicSmtpSettings();
+        });
+
+        // Track Last Login
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Auth\Events\Login::class,
+            function ($event) {
+                $event->user->update([
+                    'last_login_at' => now(),
+                ]);
+            }
+        );
+        // Track Logout (Mark as offline immediately)
+        \Illuminate\Support\Facades\Event::listen(
+            \Illuminate\Auth\Events\Logout::class,
+            function ($event) {
+                if ($event->user) {
+                    $event->user->update([
+                        'last_activity_at' => null,
+                    ]);
+                }
+            }
+        );
+    }
+
+    /**
+     * Load SMTP settings from the database.
+     */
+    protected function loadDynamicSmtpSettings(): void
+    {
         try {
             if (config('app.env') !== 'testing' && \Schema::hasTable('settings')) {
                 $settings = \App\Models\Setting::whereIn('key', [
@@ -48,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         } catch (\Exception $e) {
-            \Log::warning('Could not load dynamic SMTP settings: ' . $e->getMessage());
+            // Silently fail if DB is not ready
         }
     }
 }

@@ -36,6 +36,7 @@ onMounted(() => {
 const navItems = [
     { name: 'Dashboard', route: 'dashboard', active: route().current('dashboard') },
     { name: 'Users', route: 'admin.users.index', active: route().current('admin.users.*'), masterOnly: true },
+    { name: 'Activity', route: 'admin.activity.index', active: route().current('admin.activity.*'), masterOnly: true },
     { name: 'Settings', route: 'admin.settings.index', active: route().current('admin.settings.*'), masterOnly: true },
 ];
 </script>

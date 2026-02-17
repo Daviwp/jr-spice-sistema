@@ -214,5 +214,18 @@
   "You can now access the latest insights and analysis on your dashboard.": "Agora você pode acessar as últimas atualizações e análises em seu painel.",
   "Regards": "Atenciosamente",
   "Only Common Users": "Apenas Usuários Comuns",
-  "Master Admin": "Admin Mestre"
+  "Master Admin": "Admin Mestre",
+  "User Access Control": "Controle de Acessos",
+  "Monitor user engagement and email interactions": "Monitore o engajamento dos usuários e interações com e-mail",
+  "Last Login": "Último Login",
+  "Last Activity": "Última Atividade",
+  "Email Notification": "Notificação por E-mail",
+  "Email Interaction": "Interação com E-mail",
+  "Never": "Nunca",
+  "Online": "Online",
+  "Offline": "Offline",
+  "Opened Email": "Abriu o E-mail",
+  "Master Center": "Central do Mestre",
+  "User Activity": "Atividade de Usuários",
+  "Activity": "Atividade"
 }

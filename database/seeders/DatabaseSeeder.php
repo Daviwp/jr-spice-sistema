@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
             'password' => 'jr321@',
         ]);
 
-        $this->call(AdminUserSeeder::class);
+        $this->call([
+            AdminUserSeeder::class,
+            SMTPSettingsSeeder::class,
+        ]);
     }
 }

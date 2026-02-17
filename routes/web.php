@@ -12,6 +12,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/tracking/email-click/{user}', [AdminController::class, 'trackEmailClick'])->name('tracking.email-click');
+
 Route::get('/dashboard', function (Illuminate\Http\Request $request, PowerBiService $powerBiService) {
     try {
         $embedConfig = $powerBiService->getEmbedConfig(null, null, $request->has('refresh'));
@@ -38,6 +40,7 @@ require __DIR__.'/auth.php';
 
 Route::middleware(['auth', EnsureUserIsMaster::class])->prefix('admin')->group(function () {
     Route::get('/users', [AdminController::class, 'usersIndex'])->name('admin.users.index');
+    Route::get('/activity', [AdminController::class, 'activityIndex'])->name('admin.activity.index');
     Route::get('/users/create', [AdminController::class, 'usersCreate'])->name('admin.users.create');
     Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
     Route::get('/users/{user}/edit', [AdminController::class, 'usersEdit'])->name('admin.users.edit');

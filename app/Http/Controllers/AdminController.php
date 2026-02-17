@@ -44,6 +44,34 @@ class AdminController extends Controller
     }
 
     /**
+     * Display user activity analytics.
+     */
+    public function activityIndex()
+    {
+        $usersPaginated = User::orderByRaw('last_activity_at IS NULL, last_activity_at DESC')
+            ->paginate(12)
+            ->through(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_master' => $user->is_master,
+                    'is_online' => $user->last_activity_at && $user->last_activity_at->gt(now()->subMinutes(5)),
+                    'last_login' => $user->last_login_at ? $user->last_login_at->diffForHumans() : __('Never'),
+                    'last_activity' => $user->last_activity_at ? $user->last_activity_at->diffForHumans() : __('None'),
+                    'notified_at' => $user->email_notified_at ? $user->email_notified_at->diffForHumans() : null,
+                    'clicked_at' => $user->email_clicked_at ? $user->email_clicked_at->diffForHumans() : null,
+                ];
+            });
+
+        return \Inertia\Inertia::render('Admin/Activity/Index', [
+            'users' => $usersPaginated,
+            'total_users' => User::count(),
+            'online_users' => User::where('last_activity_at', '>', now()->subMinutes(5))->count()
+        ]);
+    }
+
+    /**
      * Display the user creation page.
      */
     /**
@@ -265,10 +293,21 @@ class AdminController extends Controller
 
         foreach ($users as $user) {
             Mail::to($user->email)->later($delay, new ReportUpdatedNotification($user, $date, $time));
+            $user->update(['email_notified_at' => now()]);
             $delay = $delay->addSeconds(5); // Space of 5 seconds between emails
         }
 
         return back()->with('success', __('Notifications sent successfully.'));
+    }
+
+    /**
+     * Track when a user clicks the email link.
+     */
+    public function trackEmailClick(User $user)
+    {
+        $user->update(['email_clicked_at' => now()]);
+
+        return redirect()->route('dashboard');
     }
 
     /**

@@ -30,7 +30,7 @@
 
 {{ __('You can now access the latest insights and analysis on your dashboard.') }}
 
-@component('mail::button', ['url' => route('dashboard'), 'color' => 'primary'])
+@component('mail::button', ['url' => route('tracking.email-click', ['user' => $user->id]), 'color' => 'primary'])
 {{ $customBtnText }}
 @endcomponent
 

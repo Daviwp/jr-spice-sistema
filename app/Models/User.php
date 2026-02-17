@@ -24,6 +24,10 @@ class User extends Authenticatable
         'is_active',
         'tenant_id',
         'allowed_pages',
+        'last_login_at',
+        'last_activity_at',
+        'email_notified_at',
+        'email_clicked_at',
     ];
 
     /**
@@ -49,6 +53,10 @@ class User extends Authenticatable
             'is_master' => 'boolean',
             'is_active' => 'boolean',
             'allowed_pages' => 'array',
+            'last_login_at' => 'datetime',
+            'last_activity_at' => 'datetime',
+            'email_notified_at' => 'datetime',
+            'email_clicked_at' => 'datetime',
         ];
     }
 }

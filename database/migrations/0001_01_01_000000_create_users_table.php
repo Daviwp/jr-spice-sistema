@@ -21,6 +21,10 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->string('tenant_id')->nullable();
             $table->json('allowed_pages')->nullable();
+            $table->timestamp('last_login_at')->nullable();
+            $table->timestamp('last_activity_at')->nullable();
+            $table->timestamp('email_notified_at')->nullable();
+            $table->timestamp('email_clicked_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
