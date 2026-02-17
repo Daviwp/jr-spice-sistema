@@ -227,5 +227,12 @@
   "Opened Email": "Abriu o E-mail",
   "Master Center": "Central do Mestre",
   "User Activity": "Atividade de Usuários",
-  "Activity": "Atividade"
+  "Activity": "Atividade",
+  "passwords.reset": "Sua senha foi redefinida!",
+  "passwords.sent": "Enviamos o link de redefinição de senha para o seu e-mail!",
+  "passwords.throttled": "Por favor, aguarde antes de tentar novamente.",
+  "passwords.token": "Este token de redefinição de senha é inválido.",
+  "passwords.user": "Não conseguimos encontrar um usuário com esse endereço de e-mail.",
+  "This account is inactive. Please contact an administrator.": "Esta conta está inativa. Por favor, entre em contato com um administrador.",
+  "We encountered a problem sending the reset link. Please try again later or contact support.": "Encontramos um problema ao enviar o link de redefinição. Por favor, tente novamente mais tarde ou entre em contato com o suporte."
 }
