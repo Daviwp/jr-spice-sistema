@@ -153,7 +153,9 @@ const embedReport = async () => {
             // ALWAYS intercept HOME and go to our dashboard
             if (displayName.includes('HOME')) {
                 activePage.value = 'system_home';
-            } else {
+            } else if (activePage.value !== 'system_home') {
+                // Only update active page if we're already viewing a report page.
+                // This prevents the report's initial loading from hijacking the "System Home" view.
                 activePage.value = newPage.name;
                 await silentCleanup(newPage);
             }
