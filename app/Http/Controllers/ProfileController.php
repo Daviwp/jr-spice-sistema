@@ -34,9 +34,11 @@ class ProfileController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,' . Auth::id()],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'company_name' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $request->user()->fill($request->only('name', 'email'));
+        $request->user()->fill($request->only('name', 'email', 'phone', 'company_name'));
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
@@ -61,6 +63,11 @@ class ProfileController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', __('Password updated successfully.'));
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/login')->with('success', __('Password updated successfully. Please log in again.'));
     }
 }

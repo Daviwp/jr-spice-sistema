@@ -10,6 +10,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const form = useForm({
     name: '',
     email: '',
+    phone: '',
+    company_name: '',
     password: '',
     password_confirmation: '',
 });
@@ -61,6 +63,32 @@ const submit = () => {
                         :placeholder="$t('name@company.com')"
                     />
                     <InputError class="mt-2" :message="form.errors.email" />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <InputLabel for="phone" :value="$t('Phone')" class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2" />
+                        <TextInput
+                            id="phone"
+                            type="text"
+                            class="mt-1 block w-full px-4 py-3 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl text-sm placeholder-gray-300 transition-all font-medium"
+                            v-model="form.phone"
+                            :placeholder="$t('+55 11 99999-9999')"
+                        />
+                        <InputError class="mt-2" :message="form.errors.phone" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="company_name" :value="$t('Company Name')" class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2" />
+                        <TextInput
+                            id="company_name"
+                            type="text"
+                            class="mt-1 block w-full px-4 py-3 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl text-sm placeholder-gray-300 transition-all font-medium"
+                            v-model="form.company_name"
+                            :placeholder="$t('Company Ltd.')"
+                        />
+                        <InputError class="mt-2" :message="form.errors.company_name" />
+                    </div>
                 </div>
 
                 <div>

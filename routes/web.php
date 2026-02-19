@@ -41,6 +41,8 @@ require __DIR__.'/auth.php';
 Route::middleware(['auth', EnsureUserIsMaster::class])->prefix('admin')->group(function () {
     Route::get('/users', [AdminController::class, 'usersIndex'])->name('admin.users.index');
     Route::get('/activity', [AdminController::class, 'activityIndex'])->name('admin.activity.index');
+    Route::post('/activity/clear', [AdminController::class, 'bulkClearActivity'])->name('admin.activity.clear');
+
     Route::get('/users/create', [AdminController::class, 'usersCreate'])->name('admin.users.create');
     Route::post('/users', [AdminController::class, 'storeUser'])->name('admin.users.store');
     Route::get('/users/{user}/edit', [AdminController::class, 'usersEdit'])->name('admin.users.edit');

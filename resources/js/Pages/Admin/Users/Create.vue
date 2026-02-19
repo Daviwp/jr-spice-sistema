@@ -16,16 +16,27 @@ import {
     ShieldCheck,
     ArrowLeft,
     CheckCircle2,
-    Layout
+    Layout,
+    Phone,
+    Building2
 } from 'lucide-vue-next';
+
+const props = defineProps({
+    default_pages: {
+        type: Array,
+        default: () => []
+    }
+});
 
 const form = useForm({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
+    phone: '',
+    company_name: '',
     is_master: false,
-    allowed_pages: [],
+    allowed_pages: props.default_pages || [],
 });
 
 const availablePages = ref([]);
@@ -136,6 +147,40 @@ const isFormValid = computed(() => {
                                     placeholder="user@example.com"
                                 />
                                 <InputError :message="form.errors.email" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <InputLabel for="phone" :value="$t('Phone')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                        <Phone class="w-5 h-5" />
+                                    </div>
+                                    <TextInput
+                                        id="phone"
+                                        type="text"
+                                        class="block w-full py-4 pl-12 pr-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                                        v-model="form.phone"
+                                        :placeholder="$t('+55 11 99999-9999')"
+                                    />
+                                </div>
+                                <InputError :message="form.errors.phone" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <InputLabel for="company_name" :value="$t('Company Name')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                        <Building2 class="w-5 h-5" />
+                                    </div>
+                                    <TextInput
+                                        id="company_name"
+                                        type="text"
+                                        class="block w-full py-4 pl-12 pr-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                                        v-model="form.company_name"
+                                        :placeholder="$t('Company Ltd.')"
+                                    />
+                                </div>
+                                <InputError :message="form.errors.company_name" />
                             </div>
                         </div>
                     </div>

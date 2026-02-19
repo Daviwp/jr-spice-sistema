@@ -7,6 +7,7 @@ import DefaultPagesSetting from './Partials/DefaultPagesSetting.vue';
 import NotifyUpdateSetting from './Partials/NotifyUpdateSetting.vue';
 import SMTPSettings from './Partials/SMTPSettings.vue';
 import EmailTemplateSettings from './Partials/EmailTemplateSettings.vue';
+import LegalSettings from './Partials/LegalSettings.vue';
 import QueueStatusMonitor from './Partials/QueueStatusMonitor.vue';
 import { Settings as SettingsIcon, Bell, Server, Shield } from 'lucide-vue-next';
 
@@ -102,6 +103,14 @@ const tabs = [
                                 <div class="h-px flex-1 bg-slate-200"></div>
                             </div>
                             <EmailTemplateSettings :settings="settings" />
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-2 px-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">{{ $t('Legal & Privacy') }}</span>
+                                <div class="h-px flex-1 bg-slate-200"></div>
+                            </div>
+                            <LegalSettings :settings="settings" />
                         </div>
                     </div>
 

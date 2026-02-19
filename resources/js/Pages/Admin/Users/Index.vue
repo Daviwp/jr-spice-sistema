@@ -4,7 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { Trash2, Edit2, UserPlus, ShieldCheck, Search, Users, UserCheck, Filter, CheckCircle } from 'lucide-vue-next';
+import { Trash2, Edit2, UserPlus, ShieldCheck, Search, Users, UserCheck, Filter, CheckCircle, MessageCircle } from 'lucide-vue-next';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
 import ToggleSwitch from '@/Components/ToggleSwitch.vue';
 
@@ -104,6 +104,12 @@ const formatDate = (dateString) => {
         minute: '2-digit'
     }).format(date);
 };
+
+const openWhatsApp = (phone) => {
+    if (!phone) return;
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+};
 </script>
 
 <template>
@@ -196,6 +202,8 @@ const formatDate = (dateString) => {
                             <thead>
                                 <tr class="bg-slate-50/50">
                                     <th scope="col" class="px-8 py-6 text-left text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Name') }}</th>
+                                    <th scope="col" class="px-8 py-6 text-left text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Company') }}</th>
+                                    <th scope="col" class="px-8 py-6 text-left text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Phone') }}</th>
                                     <th scope="col" class="px-8 py-6 text-left text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Email') }}</th>
                                     <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Role') }}</th>
                                     <th scope="col" class="px-8 py-6 text-center text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('Status') }}</th>
@@ -221,6 +229,12 @@ const formatDate = (dateString) => {
                                                 <div class="text-sm font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors">{{ user.name }}</div>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="px-8 py-5 whitespace-nowrap">
+                                        <div class="text-sm text-slate-600 font-black tracking-tight">{{ user.company_name || '-' }}</div>
+                                    </td>
+                                    <td class="px-8 py-5 whitespace-nowrap">
+                                        <div class="text-sm text-slate-500 font-bold tracking-tight">{{ user.phone || '-' }}</div>
                                     </td>
                                     <td class="px-8 py-5 whitespace-nowrap">
                                         <div class="text-sm text-slate-500 font-bold tracking-tight">{{ user.email }}</div>
@@ -255,6 +269,17 @@ const formatDate = (dateString) => {
                                     </td>
                                     <td class="px-8 py-5 whitespace-nowrap text-right font-medium">
                                         <div class="flex items-center justify-center space-x-1">
+                                            <button
+                                                @click="openWhatsApp(user.phone)"
+                                                :disabled="user.id === $page.props.auth.user.id || !user.phone"
+                                                class="p-2.5 border border-transparent rounded-xl transition-all active:scale-90"
+                                                :class="user.id === $page.props.auth.user.id || !user.phone
+                                                    ? 'text-slate-200 cursor-not-allowed'
+                                                    : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'"
+                                                :title="user.id === $page.props.auth.user.id ? $t('Cannot message yourself') : $t('WhatsApp')"
+                                            >
+                                                <MessageCircle class="w-4 h-4" />
+                                            </button>
                                             <Link
                                                 :href="route('admin.users.edit', user.id)"
                                                 class="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm hover:border-slate-200 border border-transparent rounded-xl transition-all active:scale-90"
@@ -274,7 +299,7 @@ const formatDate = (dateString) => {
                                 </tr>
                                 <!-- Empty State -->
                                 <tr v-if="users.length === 0">
-                                    <td colspan="6" class="px-8 py-20 text-center">
+                                    <td colspan="8" class="px-8 py-20 text-center">
                                         <div class="inline-flex items-center justify-center w-20 h-20 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 mb-4">
                                             <Search class="w-8 h-8 text-slate-300" />
                                         </div>

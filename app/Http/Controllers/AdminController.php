@@ -72,6 +72,22 @@ class AdminController extends Controller
     }
 
     /**
+     * Clear all user activity metadata.
+     */
+    public function bulkClearActivity()
+    {
+        User::query()->update([
+            'last_login_at' => null,
+            'last_activity_at' => null,
+            'email_notified_at' => null,
+            'email_clicked_at' => null,
+        ]);
+
+        return back()->with('success', __('Activities cleared successfully.'));
+    }
+
+
+    /**
      * Display the user creation page.
      */
     /**
@@ -82,7 +98,9 @@ class AdminController extends Controller
      */
     public function usersCreate()
     {
-        return \Inertia\Inertia::render('Admin/Users/Create');
+        return \Inertia\Inertia::render('Admin/Users/Create', [
+            'default_pages' => \App\Models\Setting::get('default_user_pages', [])
+        ]);
     }
 
     /**
@@ -134,12 +152,16 @@ class AdminController extends Controller
             'is_active' => ['boolean'],
             'allowed_pages' => ['nullable', 'array'],
             'tenant_id' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'company_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'company_name' => $request->company_name,
             'is_active' => $request->boolean('is_active', true),
             'tenant_id' => $request->input('tenant_id'),
             'allowed_pages' => $request->input('allowed_pages', []),
@@ -173,6 +195,8 @@ class AdminController extends Controller
             'is_master' => ['boolean'],
             'is_active' => ['boolean'],
             'allowed_pages' => ['nullable', 'array'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'company_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         if ($user->id === $request->user()->id) {
@@ -184,6 +208,8 @@ class AdminController extends Controller
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
+            'phone' => $request->phone,
+            'company_name' => $request->company_name,
             'allowed_pages' => $request->input('allowed_pages', []),
         ];
 
@@ -195,6 +221,13 @@ class AdminController extends Controller
         $user->is_master = $request->boolean('is_master');
         $user->is_active = $request->boolean('is_active');
         $user->save();
+
+        if ($user->id === $request->user()->id && $request->filled('password')) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->to('/login')->with('success', __('User updated successfully. Please log in again.'));
+        }
 
         return redirect()->route('admin.users.index')->with('success', __('User updated successfully.'));
     }

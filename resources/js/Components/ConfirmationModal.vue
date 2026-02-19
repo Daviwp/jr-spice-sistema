@@ -19,11 +19,11 @@ const props = defineProps({
     },
     confirmText: {
         type: String,
-        default: 'Confirmar',
+        default: null,
     },
     cancelText: {
         type: String,
-        default: 'Cancelar',
+        default: null,
     },
     loading: {
         type: Boolean,
@@ -57,7 +57,7 @@ const emit = defineEmits(['close', 'confirm']);
                     :disabled="loading"
                     class="px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-all"
                 >
-                    {{ cancelText }}
+                    {{ cancelText || $t('Cancel') }}
                 </SecondaryButton>
 
                 <DangerButton
@@ -72,7 +72,7 @@ const emit = defineEmits(['close', 'confirm']);
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     </span>
-                    {{ confirmText }}
+                    {{ confirmText || $t('Confirm') }}
                 </DangerButton>
             </div>
         </div>

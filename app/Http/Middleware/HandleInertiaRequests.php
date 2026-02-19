@@ -38,6 +38,10 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            'settings' => [
+                'legal_privacy_policy' => \App\Models\Setting::get('legal_privacy_policy'),
+                'legal_terms_of_use' => \App\Models\Setting::get('legal_terms_of_use'),
+            ],
         ];
     }
 }

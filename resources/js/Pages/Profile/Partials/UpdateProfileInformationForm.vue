@@ -4,7 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
-import { User, Mail, Save, Loader2 } from 'lucide-vue-next';
+import { User, Mail, Save, Loader2, Phone, Building2 } from 'lucide-vue-next';
 
 defineProps({
     mustVerifyEmail: {
@@ -20,6 +20,8 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    phone: user.phone || '',
+    company_name: user.company_name || '',
 });
 </script>
 
@@ -70,6 +72,38 @@ const form = useForm({
                         />
                     </div>
                     <InputError class="mt-2" :message="form.errors.email" />
+                </div>
+
+                <div class="space-y-2">
+                    <InputLabel for="phone" :value="$t('Phone')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                    <div class="relative">
+                        <Phone class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <TextInput
+                            id="phone"
+                            type="text"
+                            class="block w-full py-4 pl-12 pr-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                            v-model="form.phone"
+                            autocomplete="tel"
+                            :placeholder="$t('+55 11 99999-9999')"
+                        />
+                    </div>
+                    <InputError class="mt-2" :message="form.errors.phone" />
+                </div>
+
+                <div class="space-y-2">
+                    <InputLabel for="company_name" :value="$t('Company Name')" class="text-xs font-black text-slate-500 uppercase tracking-widest ml-1" />
+                    <div class="relative">
+                        <Building2 class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <TextInput
+                            id="company_name"
+                            type="text"
+                            class="block w-full py-4 pl-12 pr-5 rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50/50 transition-all font-medium"
+                            v-model="form.company_name"
+                            autocomplete="organization"
+                            :placeholder="$t('Company Ltd.')"
+                        />
+                    </div>
+                    <InputError class="mt-2" :message="form.errors.company_name" />
                 </div>
             </div>
 

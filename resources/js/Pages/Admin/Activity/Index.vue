@@ -1,8 +1,24 @@
 <script setup>
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import { Users, Clock, Mail, MousePointer2, Circle, ShieldCheck, Activity, UserCheck } from 'lucide-vue-next';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Users, Clock, Mail, MousePointer2, Circle, ShieldCheck, Activity, UserCheck, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/Components/Pagination.vue';
+import { ref } from 'vue';
+import ConfirmationModal from '@/Components/ConfirmationModal.vue';
+
+const isClearing = ref(false);
+const showConfirmClear = ref(false);
+
+const clearActivities = () => {
+    isClearing.value = true;
+    router.post(route('admin.activity.clear'), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showConfirmClear.value = false;
+        },
+        onFinish: () => isClearing.value = false
+    });
+};
 
 defineProps({
     users: Object, // Paginated object
@@ -46,6 +62,15 @@ const getAvatarColor = (name) => {
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1.5 mt-0.5">Online</span>
                             </div>
                         </div>
+
+                        <button
+                            @click="showConfirmClear = true"
+                            :disabled="isClearing || total_users === 0"
+                            class="flex items-center space-x-2 px-6 py-3.5 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-100 rounded-xl transition-all duration-300 group shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Trash2 class="w-4 h-4 text-slate-400 group-hover:text-rose-600 transition-colors" :class="{ 'animate-pulse': isClearing }" />
+                            <span class="text-xs font-black text-slate-600 group-hover:text-rose-700 uppercase tracking-wider">{{ $t('Clear Activities') }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -139,6 +164,18 @@ const getAvatarColor = (name) => {
                 </div>
             </div>
         </div>
+
+        <!-- Reusable Confirmation Modal -->
+        <ConfirmationModal
+            :show="showConfirmClear"
+            :title="$t('Clear Activities')"
+            :message="$t('Are you sure you want to clear all user activities? This will reset all engagement data for all users.')"
+            :confirm-text="$t('Clear')"
+            :cancel-text="$t('Cancel')"
+            :loading="isClearing"
+            @close="showConfirmClear = false"
+            @confirm="clearActivities"
+        />
     </DashboardLayout>
 </template>
 

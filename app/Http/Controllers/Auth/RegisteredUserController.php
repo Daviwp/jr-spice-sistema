@@ -35,6 +35,8 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => 'nullable|string|max:20',
+            'company_name' => 'nullable|string|max:255',
         ]);
 
         $requiresActivation = Setting::get('registration_requires_activation', false);
@@ -44,6 +46,8 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'company_name' => $request->company_name,
             'is_active' => !$requiresActivation,
             'allowed_pages' => $defaultPages,
         ]);

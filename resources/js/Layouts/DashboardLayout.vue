@@ -8,9 +8,22 @@ import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
+import LegalModal from '@/Components/LegalModal.vue';
 
 const page = usePage();
 const user = page.props.auth.user;
+
+const showLegalModal = ref(false);
+const legalModalType = ref('privacy');
+const legalContent = ref('');
+
+const openLegal = (type) => {
+    legalModalType.value = type;
+    legalContent.value = type === 'privacy'
+        ? page.props.settings.legal_privacy_policy
+        : page.props.settings.legal_terms_of_use;
+    showLegalModal.value = true;
+};
 
 // Watch for flash messages from backend
 watch(() => page.props.flash, (flash) => {
@@ -134,14 +147,22 @@ const navItems = [
                                 {{ $t('Copyright • 2026 All rights reserved') }}
                             </p>
                             <div class="flex items-center space-x-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                <a href="#" class="hover:text-blue-600 transition-colors">{{ $t('PRIVACY') }}</a>
-                                <a href="#" class="hover:text-blue-600 transition-colors">{{ $t('TERMS') }}</a>
+                                <button @click="openLegal('privacy')" class="hover:text-blue-600 transition-colors uppercase">{{ $t('PRIVACY') }}</button>
+                                <button @click="openLegal('terms')" class="hover:text-blue-600 transition-colors uppercase">{{ $t('TERMS') }}</button>
                             </div>
                         </div>
                     </footer>
                 </div>
             </main>
         </div>
+
+        <!-- Global Legal Modal -->
+        <LegalModal
+            :show="showLegalModal"
+            :type="legalModalType"
+            :content="legalContent"
+            @close="showLegalModal = false"
+        />
 
         <!-- Global Toast Container -->
         <ToastContainer />
