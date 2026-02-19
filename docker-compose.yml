@@ -7,42 +7,28 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
-      - ./vendor:/var/www/html/vendor
-      - ./node_modules:/var/www/html/node_modules
     depends_on:
       - db
     networks:
       - appnet
+    mem_limit: 256M
 
-  queue-worker:
+  worker:
     build: ./docker/php
-    container_name: ${COMPOSE_PROJECT_NAME:-laravel}_queue_worker
+    container_name: ${COMPOSE_PROJECT_NAME:-laravel}_worker
     restart: unless-stopped
     user: "1000:1000"
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
-    command: php artisan queue:work --timeout=60 --tries=3 --max-jobs=100 --max-time=3600
+    command: >
+      sh -c "(while [ true ]; do php artisan schedule:run --no-interaction; sleep 60; done) & php artisan queue:work --timeout=60 --tries=3 --max-jobs=100 --max-time=3600 --memory=128"
     depends_on:
       - app
       - db
     networks:
       - appnet
-
-  scheduler:
-    build: ./docker/php
-    container_name: ${COMPOSE_PROJECT_NAME:-laravel}_scheduler
-    restart: unless-stopped
-    user: "1000:1000"
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
-    command: sh -c "while [ true ]; do php artisan schedule:run --no-interaction & sleep 60; done"
-    depends_on:
-      - app
-      - db
-    networks:
-      - appnet
+    mem_limit: 128M
 
   web:
     image: nginx:stable-alpine
@@ -57,22 +43,23 @@ services:
       - "80:80"
     networks:
       - appnet
+    mem_limit: 64M
 
   db:
-    image: mysql:8.0
+    image: mariadb:10.11
     container_name: ${COMPOSE_PROJECT_NAME:-laravel}_db
     restart: unless-stopped
+    command: [ "mysqld", "--innodb-buffer-pool-size=128M", "--performance-schema=OFF", "--max-connections=50" ]
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-laravel}
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - dbdata:/var/lib/mysql
-    ports:
-      - "3306:3306"
     networks:
       - appnet
+    mem_limit: 384M
 
 networks:
   appnet:
